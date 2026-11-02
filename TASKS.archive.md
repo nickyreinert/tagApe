@@ -1,0 +1,21 @@
+# Done
+
+- T-001 Live: two host filters - page host (aida.de, db.jobs) and tracking server (smetrics.aida.de) — done 2026-11-02
+- T-002 Live: trash button clears the view only (like DevTools Clear); stored hits stay in the session — done 2026-11-02
+- T-003 Live: visual helpers - hit-type icon (page/link), left border by source (AM vs Web SDK), color-coded variable chips (events green, eVars yellow, props/lists/hierarchies own colors), less text — done 2026-11-02
+- T-004 Inspector: expand hit inline in the list (no second view); detail sections as collapsible groups instead of sub-tabs — done 2026-11-02
+- T-005 Variable popover + Pin: click an event/eVar/prop opens a small popover with Pin; pinned variables show at the very top of Live with their value changes over the hits — done 2026-11-02
+- T-006 Fav variables: popover action Fav; favorited variables shown as chips directly on every hit row (needs T-005 popover) — done 2026-11-02
+- T-007 Live: filter by call type (Analytics tracking, Target/decisioning, audience/other) + right-side border color per call type; define detection per type first — done 2026-11-02
+- T-008 Live: hide the filter-profile dropdown ('No filter') when no profiles exist; profiles stay manageable in Settings — done 2026-11-02
+- T-011 Remove Journey and Funnel tabs; move grouping (merged / by tab / by page) into Live — done 2026-11-02
+- T-013 Screenshots: 'Screenshot' checkbox in header; when on, capture the visible tab on each user interaction (pointerdown/keydown via content script, chrome.tabs.captureVisibleTab, max ~2/s); show the latest screenshot before each hit as a thumbnail in a 4th column, larger on hover; stored per session in IndexedDB — done 2026-11-02
+- T-016 Settings: 'Delete all recordings' (all sessions, hits, screenshots; confirm; blocked while recording) — done 2026-11-02
+- T-017 Persist Live view state (grouping, filters, journey focus, cleared view, collapsed sections, open pins) across panel reloads and browser restarts — done 2026-11-02
+- T-010 Live: align the pinned panel with the favorite columns (pinned events above the fav-events column, pinned dimensions above the fav-dimensions column) — done 2026-11-02
+- T-012 Journey breakpoint: header button starts/stops a marked journey while recording continues; use it to group hits and to focus (hide hits outside the journey) — done 2026-11-02
+- T-014 Journeys: name a journey (rename in header/Live), stored on the session — done 2026-11-02
+- T-015 Journey report export: HTML report for all hits or one journey plus current filters; vertical timeline top to bottom, screenshots left (if any), hit dimensions right; self-contained file — done 2026-11-02
+- T-018 Add Google Analytics capture and document the extension — done 2026-11-02
+- T-019 Name the analytics extension and update public branding — done 2026-11-02
+- T-020 Rename HitTrail to TagApe — done 2026-11-02

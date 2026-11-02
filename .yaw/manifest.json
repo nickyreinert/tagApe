@@ -1,0 +1,325 @@
+{
+  "kit": "0.1.0",
+  "profiles": [
+    "browser-extension"
+  ],
+  "preset": "pro",
+  "agents": [
+    "claude",
+    "codex",
+    "copilot",
+    "gemini"
+  ],
+  "vendored": false,
+  "modules": {
+    "core": {
+      "enabled": true
+    },
+    "code-map": {
+      "enabled": true
+    },
+    "comfort": {
+      "enabled": true
+    },
+    "communication": {
+      "enabled": true
+    },
+    "decisions": {
+      "enabled": true
+    },
+    "sessions": {
+      "enabled": true
+    },
+    "tasks": {
+      "enabled": true,
+      "mode": "local"
+    }
+  },
+  "mcpServers": [],
+  "files": [
+    {
+      "path": ".agents/skills/handoff/SKILL.md",
+      "module": "sessions",
+      "hash": "sha256:701f6ccf037077ff3f7d511b1da812c076c72fd17e4d931ab6282954207b5eda",
+      "managed": true
+    },
+    {
+      "path": ".claude/output-styles/yaw.md",
+      "module": "communication",
+      "hash": "sha256:b87ca94944eea852f143915324ff67fb8d2fa8ad871a4074594615167e48fea2",
+      "managed": true
+    },
+    {
+      "path": ".claude/settings.json",
+      "module": "core",
+      "hash": "sha256:615ffc13b478986778902ff125a6b79787d516074153425784329e879973a9a0",
+      "managed": true,
+      "fragments": [
+        {
+          "module": "comfort",
+          "hash": "sha256:f87798089ba080d047340c3458c089cdf689b8d0547321948c7c3de0def4835e"
+        },
+        {
+          "module": "communication",
+          "hash": "sha256:91ec5482ceac9b83a8ed46a513712c482fef425483df2fa7c7c91c7f55233508"
+        },
+        {
+          "module": "decisions",
+          "hash": "sha256:c4920facde38e4a5caa5b5bd24e6480740ddca867e78c78281f8c99dd1e6810f"
+        },
+        {
+          "module": "sessions",
+          "hash": "sha256:2e6e9e2001e0b1f3422d42d0b468b550f28765d36e112e89427f53de4e423e42"
+        },
+        {
+          "module": "tasks",
+          "hash": "sha256:bed91d5d874aec38b22f75e73e3726615f1c7d051e0d8f32f7af9c5a61cfb0cc"
+        }
+      ]
+    },
+    {
+      "path": ".claude/skills/handoff/SKILL.md",
+      "module": "sessions",
+      "hash": "sha256:701f6ccf037077ff3f7d511b1da812c076c72fd17e4d931ab6282954207b5eda",
+      "managed": true
+    },
+    {
+      "path": ".codex/hooks.json",
+      "module": "core",
+      "hash": "sha256:3909513341603509a211658eea98eddad781e2406689caadfbf9653f8ee91420",
+      "managed": true,
+      "fragments": [
+        {
+          "module": "comfort",
+          "hash": "sha256:388faa47d6990b1bb33e5c8183288cdda61eb297bb7d0c5f3cbf8d3338fdf348"
+        },
+        {
+          "module": "decisions",
+          "hash": "sha256:a5f5511fb9fca858a532e3c5590b99c2660a27236827b14f7b2f62ce6fca2c4b"
+        },
+        {
+          "module": "sessions",
+          "hash": "sha256:5a3878e0c396283be4712bc3aca21bbbbac20afe12407bbeea50f4cc98e9af92"
+        },
+        {
+          "module": "tasks",
+          "hash": "sha256:8affbb14be6f54fba0c47b970c81844cb2e625518107191bdb59892c25ff4faa"
+        }
+      ]
+    },
+    {
+      "path": ".decisions/decisions.index.json",
+      "module": "decisions",
+      "hash": "sha256:368a97bc10aa1148be14ef3e1a16677ec61eacfa365c19e4cf82ac672f9a87d6",
+      "managed": true
+    },
+    {
+      "path": ".decisions/taxonomy.json",
+      "module": "decisions",
+      "hash": "sha256:512cddb850558758cf99888643e4549f2010f6279f112e44bec1a0dff9e0f920",
+      "managed": true
+    },
+    {
+      "path": ".gitignore",
+      "module": "core",
+      "hash": "sha256:6e0d94f5031ab7cfa9615ac8fef209aae8b4ed30703bc0d724f876ac0873496e",
+      "managed": true,
+      "fragments": [
+        {
+          "module": "browser-extension",
+          "hash": "sha256:790e3169bc19b046fe55ba1da6d13b976c28363c8c00462a2195fe5faf260910"
+        },
+        {
+          "module": "sessions",
+          "hash": "sha256:c10e24fdf41910e5e6d0ceb3f6beba44f6a03efa4c23bfe3dcc1a8d07f28fd17"
+        }
+      ]
+    },
+    {
+      "path": ".htmlvalidate.json",
+      "module": "core",
+      "hash": "sha256:e7743474f0503ca783cfe7f2032e3cd2c2b37dba7643495d00fcc01fad232fa6",
+      "managed": false
+    },
+    {
+      "path": ".stylelintrc.json",
+      "module": "core",
+      "hash": "sha256:cacaad4085ea184fa0027d998fd7da5b1d5f4ce7843887c9903a4dfdf5d44d01",
+      "managed": false
+    },
+    {
+      "path": ".yaw/answers.yaml",
+      "module": "core",
+      "hash": "sha256:23602a71321ecc99a2be7109864c42cb3eec4d8a90e2f4f787860d2442a300b9",
+      "managed": false
+    },
+    {
+      "path": ".yaw/bin/yaw-hook",
+      "module": "core",
+      "hash": "sha256:01febb1801037c0ef003a421071023a3b75920fb127977bdc4806d0dfb19e928",
+      "managed": true
+    },
+    {
+      "path": "AGENTS.md",
+      "module": "core",
+      "hash": "sha256:60cf63c168939546923a2a21bd34143702745e3303274220b8d0564ef5d73a95",
+      "managed": true,
+      "fragments": [
+        {
+          "module": "code-map",
+          "hash": "sha256:ddfc58cc4d8db665b88197af4aa47c538977732d449ccc4f298ec741b1c14422"
+        },
+        {
+          "module": "comfort",
+          "hash": "sha256:84261ba4cf79a9ce723888939da861bef71fa30ec04ea73abfd6b1686f9d5cb7"
+        },
+        {
+          "module": "communication",
+          "hash": "sha256:fa3db9d8256dc169fe29adc51549aee431dd1daed0330b263024923bd7edc8c4"
+        },
+        {
+          "module": "decisions",
+          "hash": "sha256:48d242bdc7e46914c90365c444585699551414b8b42cbca51aa0550a80f1acdf"
+        },
+        {
+          "module": "sessions",
+          "hash": "sha256:40c5c2ef0e2bdf1c26b8648567685e8a7cf63238b1a0bd21d09dfb1f56deaabe"
+        },
+        {
+          "module": "tasks",
+          "hash": "sha256:e65eeac14054c853acfef653dcfb4c7856badcc074c4b16df7284be74f31c954"
+        }
+      ]
+    },
+    {
+      "path": "CLAUDE.md",
+      "module": "core",
+      "hash": "sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49",
+      "managed": true
+    },
+    {
+      "path": "GEMINI.md",
+      "module": "core",
+      "hash": "sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49",
+      "managed": true
+    },
+    {
+      "path": "README.md",
+      "module": "core",
+      "hash": "sha256:db946c7d23f4ffe21f7d9e5dfd234ad2adc2d782fb710795a3f1392bdd716c41",
+      "managed": false
+    },
+    {
+      "path": "TASKS.md",
+      "module": "tasks",
+      "hash": "sha256:9902583f1362a401f2403035bf7060e8e3bcfedd5cc84a111ab5be75e32c1c52",
+      "managed": true
+    },
+    {
+      "path": "docs/code-map.md",
+      "module": "code-map",
+      "hash": "sha256:bf6ed5c8aa7c4b3b65eb472d1d56400c33157b7187b11dc52cf3b0543d325778",
+      "managed": false
+    },
+    {
+      "path": "docs/engineering.md",
+      "module": "core",
+      "hash": "sha256:214adcc8512a0bbd8de817116a2a444f39b8ab2d5054b7f96a8f401c184c3fff",
+      "managed": true
+    },
+    {
+      "path": "extension/manifest.json",
+      "module": "core",
+      "hash": "sha256:4a9068b69efd428cb1560675f7c22d296e55b155cde318b5927f3d61478a5dc1",
+      "managed": false
+    },
+    {
+      "path": "extension/popup.css",
+      "module": "core",
+      "hash": "sha256:1692284d725a9ce7333a4a2ceb3c145c69bc99c0fd891449fd3852baa37f8a2d",
+      "managed": false
+    },
+    {
+      "path": "extension/popup.html",
+      "module": "core",
+      "hash": "sha256:a12d462af7c89212cd4ff7635da8351f929f4a6046777ba46aa7a06d48a59c81",
+      "managed": false
+    },
+    {
+      "path": "extension/popup.js",
+      "module": "core",
+      "hash": "sha256:128b964febd99c3ebe3db2974a0f3b2647bbce1589bf404de50647bf3b89936f",
+      "managed": false
+    },
+    {
+      "path": "just/browser-extension.just",
+      "module": "core",
+      "hash": "sha256:7a7081da23f3d55590cb1496966047c3ebd4e551eed4048ba7621829d6d496e0",
+      "managed": true
+    },
+    {
+      "path": "just/code-map.just",
+      "module": "code-map",
+      "hash": "sha256:7b48aaab62ad2736d81faed75e21a23c8f67ed7beb7efd8077ecdfd332b25283",
+      "managed": true
+    },
+    {
+      "path": "just/decisions.just",
+      "module": "decisions",
+      "hash": "sha256:fcc3ca511e13b0a2af273b1b9f3ced5aaa57fe1297e7c75b7d34db917e630213",
+      "managed": true
+    },
+    {
+      "path": "just/sessions.just",
+      "module": "sessions",
+      "hash": "sha256:8d7e1ef2d7851e551716dafdd9fea44552cd86535d0ec96406f49de799442bff",
+      "managed": true
+    },
+    {
+      "path": "just/tasks.just",
+      "module": "tasks",
+      "hash": "sha256:60fa2744cc75d35129e5968f12780d76f7a1789e036ff14a802633225b46f73a",
+      "managed": true
+    },
+    {
+      "path": "justfile",
+      "module": "core",
+      "hash": "sha256:825c6e8999c408928880555a356b574d9ed0e931111b6bea2f5cf6580d018806",
+      "managed": true,
+      "fragments": [
+        {
+          "module": "browser-extension",
+          "hash": "sha256:3849ecd0903bf24ca47921bf4a5f860418e81b4c4a230e12a3a76591272898ce"
+        },
+        {
+          "module": "code-map",
+          "hash": "sha256:f88da123616ab9c4ecec43147310e4a31018d3beed92a35e7eb77b2777c303fd"
+        },
+        {
+          "module": "decisions",
+          "hash": "sha256:40cbf2f571d9cb4d1c4cee8ec81d09bb5c1b37930a9ea57100b5f46768721e4f"
+        },
+        {
+          "module": "sessions",
+          "hash": "sha256:fbed4c95ca03fa5823fbfab771223654fa9c86edc76af424d3063933c338f831"
+        },
+        {
+          "module": "tasks",
+          "hash": "sha256:1ac8bd522a8bfcf57a30624e499b3be0aa9993ae194e8ced94d605040a00a0fb"
+        }
+      ]
+    },
+    {
+      "path": "package.json",
+      "module": "core",
+      "hash": "sha256:f6e228ed7e48e0636f727674ea3786c84cbd37eb1ef8d63448ba6f02989708bf",
+      "managed": false
+    },
+    {
+      "path": "scripts/check-manifest.mjs",
+      "module": "core",
+      "hash": "sha256:6fff17ead8634be97d5e017aa07923d6351de9ddd2d8efee5aa81d31be92849d",
+      "managed": false
+    }
+  ]
+}

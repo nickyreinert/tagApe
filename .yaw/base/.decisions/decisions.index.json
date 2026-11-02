@@ -1,0 +1,6 @@
+{
+  "version": 2,
+  "model": "local-hash-ngram-v2",
+  "dimensions": 384,
+  "entries": []
+}

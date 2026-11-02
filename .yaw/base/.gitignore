@@ -1,0 +1,16 @@
+# local web-form draft (yaw init --web); it can hold unfinished answers
+.yaw/draft.yaml
+# kickoff prompts (yaw init, yaw kickoff concept); they hold setup facts and documents, regenerated on demand
+.yaw/concept-prompt.md
+.yaw/kickoff-prompt.md
+# personal Claude Code settings (status line, local permissions)
+.claude/settings.local.json
+
+# yaw:browser-extension
+node_modules/
+dist/
+# /yaw:browser-extension
+
+# yaw:sessions
+.yaw/sessions/
+# /yaw:sessions

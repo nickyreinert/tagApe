@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journey Recorder UI mock</title>
+<!-- Structural mock for review (docs/spec/ui-ux.md §9). Not product code: delete after acceptance. -->
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #fff; --fg: #1b1d21; --muted: #5a616c; --line: #d6d9de; --soft: #f2f3f5;
+    --accent: #1a56b8; --rec: #b3261e; --warn: #7a4f00; --warn-bg: #fff3d1; --ok: #1b6e35;
+    --err: #b3261e; --err-bg: #fde7e6; --match: #e3edfc; --page: #e6e8ec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1d1f23; --fg: #e8eaed; --muted: #a8aeb8; --line: #3b3f46; --soft: #272a2f;
+      --accent: #8ab4f8; --rec: #f28b82; --warn: #fdd663; --warn-bg: #3b3218; --ok: #81c995;
+      --err: #f28b82; --err-bg: #3d2220; --match: #1f2f46; --page: #121316;
+    }
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--page); color: var(--fg); font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { background: var(--soft); border: 1px solid var(--line); border-radius: 4px; padding: 3px 8px; cursor: pointer; }
+  button.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  button.link { background: none; border: none; padding: 0; color: var(--accent); text-decoration: underline; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  input, select, textarea { background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 3px 6px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+  .muted { color: var(--muted); }
+
+  .mockbar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; padding: 8px 16px; background: var(--soft); border-bottom: 1px solid var(--line); }
+  .mockbar p { margin: 0; flex-basis: 100%; color: var(--muted); }
+  .stage { padding: 16px; display: flex; justify-content: center; }
+
+  .frame { width: var(--w, 360px); height: 700px; max-width: 100%; display: flex; flex-direction: column; background: var(--bg); border: 1px solid var(--line); position: relative; overflow: hidden; }
+  .hdr { padding: 8px 10px; border-bottom: 1px solid var(--line); display: grid; gap: 6px; }
+  .status-line { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .status { font-weight: 600; }
+  .status.recording { color: var(--rec); }
+  .session-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .controls { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .controls .counts { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .warnbtn { color: var(--warn); background: var(--warn-bg); border-color: transparent; }
+  .banner { padding: 6px 8px; border-radius: 4px; display: grid; gap: 4px; }
+  .banner.error { background: var(--err-bg); color: var(--err); }
+  .banner.prompt { background: var(--soft); border: 1px dashed var(--line); }
+  .banner .actions { display: flex; gap: 6px; }
+
+  .tabs { display: flex; border-bottom: 1px solid var(--line); }
+  .tabs [role="tab"], .tabs .gear { flex: 1; border: 0; border-radius: 0; background: none; padding: 7px 4px; border-bottom: 2px solid transparent; }
+  .tabs .gear { flex: 0 0 36px; }
+  .tabs [aria-selected="true"], .tabs .gear[aria-pressed="true"] { border-bottom-color: var(--accent); font-weight: 600; }
+
+  main { flex: 1; overflow: auto; position: relative; }
+  .view { padding: 8px 10px; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 1; }
+  .toolbar .grow { flex: 1 1 120px; min-width: 0; }
+  .toolbar .info { flex-basis: 100%; display: flex; justify-content: space-between; color: var(--muted); }
+
+  ol.list { list-style: none; margin: 0; padding: 0; }
+  .row { display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none; padding: 6px 10px; }
+  .row:hover { background: var(--soft); }
+  .row.match { background: var(--match); }
+  .row .meta { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; color: var(--muted); }
+  .row .title { display: block; font-weight: 600; overflow-wrap: anywhere; }
+  .row .evs { display: block; color: var(--muted); overflow-wrap: anywhere; }
+  .badge { display: inline-block; padding: 0 4px; border: 1px solid var(--line); border-radius: 3px; font-size: 11px; color: var(--fg); }
+  .pstat { color: var(--warn); font-weight: 600; }
+  .pstat.failed { color: var(--err); }
+  .delta { margin-left: auto; font-variant-numeric: tabular-nums; }
+  .sep { padding: 4px 10px; background: var(--soft); border-bottom: 1px solid var(--line); color: var(--muted); overflow-wrap: anywhere; }
+  .gap { padding: 4px 10px; border-bottom: 1px solid var(--line); color: var(--warn); background: var(--warn-bg); }
+  .group-h { margin: 0; padding: 6px 10px; font-size: 13px; text-transform: none; letter-spacing: 0; color: var(--fg); border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+  .jump { position: sticky; bottom: 8px; left: 100%; margin: 8px; float: right; }
+  .empty { padding: 24px 16px; color: var(--muted); display: grid; gap: 8px; }
+  .empty strong { color: var(--fg); }
+
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+  .seg label { padding: 2px 8px; cursor: pointer; }
+  .seg input { position: absolute; opacity: 0; }
+  .seg input:checked + span { font-weight: 600; text-decoration: underline; }
+  .seg label:focus-within { outline: 2px solid var(--accent); }
+
+  .inspector { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .inspector[hidden] { display: none; }
+  .insp-head { padding: 6px 10px; border-bottom: 1px solid var(--line); display: grid; gap: 4px; }
+  .insp-nav { display: flex; gap: 6px; align-items: center; }
+  .insp-nav h2 { font-size: 13px; margin: 0 0 0 auto; }
+  .insp-body { flex: 1; overflow: auto; padding: 8px 10px; }
+  .subtabs { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding: 0 6px; }
+  .subtabs [role="tab"] { border: 0; border-radius: 0; background: none; padding: 5px 6px; border-bottom: 2px solid transparent; }
+  .subtabs [aria-selected="true"] { border-bottom-color: var(--accent); font-weight: 600; }
+  dl.kv { display: grid; grid-template-columns: minmax(80px, 34%) 1fr; gap: 3px 8px; margin: 0; }
+  dl.kv dt { color: var(--muted); overflow-wrap: anywhere; }
+  dl.kv dd { margin: 0; overflow-wrap: anywhere; }
+  h3 { font-size: 12px; margin: 12px 0 4px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); }
+  pre { margin: 0; padding: 6px; background: var(--soft); border-radius: 4px; overflow-x: auto; white-space: pre; max-height: 360px; }
+  pre.wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .ref { color: var(--muted); }
+  .unresolved { color: var(--warn); }
+  .card { border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; margin-bottom: 8px; display: grid; gap: 4px; }
+  .card .actions { display: flex; flex-wrap: wrap; gap: 6px; }
+  .notice { padding: 6px 8px; border-radius: 4px; background: var(--warn-bg); color: var(--warn); margin-bottom: 8px; }
+  .notice.failed { background: var(--err-bg); color: var(--err); }
+  .notice ul { margin: 2px 0 0; padding-left: 18px; }
+
+  .steps { list-style: none; margin: 0; padding: 0; }
+  .steps li { border-bottom: 1px solid var(--line); padding: 6px 0; display: grid; gap: 2px; }
+  .st { font-weight: 600; }
+  .st.reached { color: var(--ok); } .st.missing { color: var(--err); } .st.out_of_order { color: var(--warn); } .st.pending { color: var(--muted); }
+  .editor-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+  .editor-row .full { grid-column: 1 / -1; }
+  .field { display: grid; gap: 2px; margin-bottom: 10px; }
+  .field small { color: var(--muted); }
+  .field .error { color: var(--err); }
+  textarea { width: 100%; min-height: 64px; }
+  .toast { position: absolute; left: 10px; right: 10px; bottom: 10px; padding: 6px 8px; border-radius: 4px; background: var(--fg); color: var(--bg); }
+  .toast[hidden] { display: none; }
+  dialog { border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); max-width: 320px; }
+  dialog::backdrop { background: rgb(0 0 0 / 40%); }
+  dialog .actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="mockbar">
+  <strong>UI mock</strong>
+  <label>Scenario
+    <select id="scenario">
+      <option value="recording">Recording with hits</option>
+      <option value="paused">Paused</option>
+      <option value="stopped">Stopped, viewing session</option>
+      <option value="nohits">Recording, no hits yet</option>
+      <option value="idle">First use: not recording, no sessions</option>
+      <option value="storage">Error: storage full</option>
+      <option value="capture">Error: capture failure</option>
+    </select>
+  </label>
+  <label>Panel width
+    <select id="width"><option>320</option><option selected>360</option><option>500</option></select>
+  </label>
+  <button type="button" id="simulate">Simulate new hit</button>
+  <p>Structure and interaction only. Fixtures: two real reference hits (db.jobs AppMeasurement GET, aida.de Web SDK POST), the others are derived variants. Decoding runs live in this page. Keys: ↑/↓ in lists, Enter opens, Esc closes, j/k prev/next in inspector, arrows in tab bars.</p>
+</div>
+
+<div class="stage">
+  <div class="frame" id="panel">
+    <header class="hdr" id="hdr"></header>
+    <nav class="tabs" role="tablist" aria-label="Views" id="tabs">
+      <button type="button" role="tab" id="tab-live" aria-controls="views" data-view="live">Live</button>
+      <button type="button" role="tab" id="tab-journey" aria-controls="views" data-view="journey">Journey</button>
+      <button type="button" role="tab" id="tab-funnel" aria-controls="views" data-view="funnel">Funnel</button>
+      <button type="button" role="tab" id="tab-sessions" aria-controls="views" data-view="sessions">Sessions</button>
+      <button type="button" class="gear" id="gear" aria-label="Settings" aria-pressed="false">⚙</button>
+    </nav>
+    <main id="views" role="tabpanel"></main>
+    <section class="inspector" id="inspector" hidden aria-labelledby="insp-title"></section>
+    <div class="toast" id="toast" role="status" hidden></div>
+    <div class="sr-only" id="announce" aria-live="polite"></div>
+  </div>
+</div>
+
+<dialog id="confirm">
+  <p id="confirm-text"></p>
+  <div class="actions">
+    <button type="button" id="confirm-cancel">Cancel</button>
+    <button type="button" id="confirm-ok" class="primary">Delete</button>
+  </div>
+</dialog>
+
+<script type="text/plain" id="am-sample">
+https://dbsystelentities.d3.sc.omtrdc.net/b/ss/dbsedbagkp/1/JS-2.27.0-LGU4/s75831313687598?AQB=1&ndh=1&pf=1&t=2%2F10%2F2026%2016%3A35%3A31%201%20-60&sdid=4381399301F7900A-051242EACBC3767C&mid=47481720525083277467216168740698638988&aamlh=6&ce=UTF-8&cl=34214400&pageName=DBGCP_DE_WEB_KarriereUndJobsBeiDerDb&g=https%3A%2F%2Fdb.jobs%2Fde-de&c.&apl=4.0&getNewRepeat=3.0&getPageLoadTime=3.1&getPercentPageViewed=5.1&.c&cc=EUR&ch=DBGCP_DE_WEB&server=db.jobs&aamb=RKhpRz8krg2tLO6pguXWp5olkAcUniQYPHaMWWgdJ3xzPWQmdj0y&v1=D%3Dv0&v2=D%3Dv0&v3=D%3Dv0&v4=D%3Dv0&c8=D%3Dv17&c10=D%3Dv10&v10=1793633729749&c11=D%3Dv11&v11=DBGCP_DE_WEB_KarriereUndJobsBeiDerDb&c12=5441412&c13=Karriere%20bei%20der%20Deutschen%20Bahn%20-%20Jetzt%20bewerben%21&c14=D%3Dv14&v14=https%3A%2F%2Fdb.jobs%2Fde-de&c15=D%3Dv15&v15=https%3A%2F%2Fdb.jobs%2Fde-de&c16=D%3Dv16&c17=com.coremedia.blueprint.cae.contentbeans.CMChannelImpl%24%24%5Bid%3D13637358%5D&c18=Home&c21=db%20global%20careers&c22=de&c24=db.jobs&c25=D%3Dv25&c29=D%3Dv29&c31=D%3Dv31&v31=ECM&c32=D%3Dv32&c33=D%3Dv33&c35=D%3Dv35&c37=D%3Dv37&c38=D%3Dv38&c40=D%3Dv40&c43=D%3Dv43&c47=D%3Dv47&c49=1&v50=Mozilla%2F5.0%20%28Macintosh%3B%20Intel%20Mac%20OS%20X%2010_15_7%29%20AppleWebKit%2F537.36%20%28KHTML%2C%20like%20Gecko%29%20Chrome%2F156.0.0.0%20Safari%2F537.36&c51=2026-07-15T11%3A22%3A08Z&c52=production&c57=prod&c58=pageload&c61=D%3Dv61&c62=D%3Dv62&c63=D%3Dv63&c64=D%3Dv64&c65=D%3Dv65&c66=D%3Dv66&c67=D%3Dv67&c68=D%3Dv68&c69=D%3Dv69&v69=New&c74=D%3Dv74&v74=Unknown&v77=D%3Dv76&s=2560x1440&c=24&j=1.6&v=N&k=Y&bw=1778&bh=600&mcorgid=FC3E1CEC5B991CB80A495E63%40AdobeOrg&AQE=1
+</script>
+<script type="application/json" id="sdk-sample">
+{"events":[{"xdm":{"eventType":"web.webpagedetails.pageViews","web":{"webPageDetails":{"URL":"https://aida.de/finden/MAE2281103//PREMIUM?pax[adults]=2&pax[juveniles]=0&pax[children]=0&pax[babies]"},"webReferrer":{"URL":"https://aida.de/reiseziele/weltreise/2028?onsite=weltreise_website_homepage_startseitenteaser_schiff_sydney_once_promo"}},"device":{"screenHeight":1440,"screenWidth":2560,"screenOrientation":"landscape"},"environment":{"type":"browser","browserDetails":{"viewportWidth":1778,"viewportHeight":600}},"placeContext":{"localTimezoneOffset":-60,"localTime":"2026-11-02T16:34:13.447+01:00","ianaTimezone":"Europe/Berlin"},"timestamp":"2026-11-02T15:34:13.447Z","implementationDetails":{"name":"https://ns.adobe.com/experience/alloy/reactor","version":"__VERSION__+2.34.2","environment":"browser"},"_experience":{"decisioning":{"propositions":[{"id":"AT:eyJhY3Rpdml0eUlkIjoiMTIwODQ4MCIsImV4cGVyaWVuY2VJZCI6IjEifQ==","scope":"__view__","scopeDetails":{"decisionProvider":"TGT","activity":{"id":"1208480"},"experience":{"id":"1"},"strategies":[{"step":"entry","trafficType":"0"},{"step":"display","trafficType":"0"}],"characteristics":{"eventToken":"jzDZcHud0zWe/oSsJEKKXg6taum/Ule9G8NTrZHPdMntyf8vZbHfLICMmcVo4KgxIrLeyTdp42xDruy0QglDPA=="},"correlationID":"1208480:1:0"}},{"id":"AT:eyJhY3Rpdml0eUlkIjoiMTI2NzgyMyIsImV4cGVyaWVuY2VJZCI6IjAifQ==","scope":"__view__","scopeDetails":{"decisionProvider":"TGT","activity":{"id":"1267823"},"experience":{"id":"0"},"strategies":[{"step":"entry","trafficType":"0"},{"step":"display","trafficType":"0"}],"characteristics":{"eventToken":"rxFUyy2mYqlpG7ug+Rj+vnZJRFNRMCdc84hKiEgfaartyf8vZbHfLICMmcVo4KgxribCp42SjN/gmLvBN6LDfQ=="},"correlationID":"1267823:0:0"}},{"id":"AT:eyJhY3Rpdml0eUlkIjoiMTI3NDk0MiIsImV4cGVyaWVuY2VJZCI6IjAifQ==","scope":"__view__","scopeDetails":{"decisionProvider":"TGT","activity":{"id":"1274942"},"experience":{"id":"0"},"strategies":[{"step":"entry","trafficType":"0"},{"step":"display","trafficType":"0"}],"characteristics":{"eventToken":"YopJ3K87yE5Db1JdTBscsXZJRFNRMCdc84hKiEgfaartyf8vZbHfLICMmcVo4KgxIrLeyTdp42xDruy0QglDPA=="},"correlationID":"1274942:0:0"}},{"id":"AT:eyJhY3Rpdml0eUlkIjoiMTI2NzY5NyIsImV4cGVyaWVuY2VJZCI6IjAifQ==","scope":"__view__","scopeDetails":{"decisionProvider":"TGT","activity":{"id":"1267697"},"experience":{"id":"0"},"strategies":[{"step":"entry","trafficType":"0"},{"step":"display","trafficType":"0"}],"characteristics":{"eventToken":"SKPdiD6S1lk0zvGPc8QlYHZJRFNRMCdc84hKiEgfaartyf8vZbHfLICMmcVo4KgxSXXKaW7F23I4ChL29BeLZA=="},"correlationID":"1267697:1:0"}},{"id":"AT:eyJhY3Rpdml0eUlkIjoiMTI3NDU3NiIsImV4cGVyaWVuY2VJZCI6IjAifQ==","scope":"__view__","scopeDetails":{"decisionProvider":"TGT","activity":{"id":"1274576"},"experience":{"id":"0"},"strategies":[{"step":"entry","trafficType":"0"},{"step":"display","trafficType":"0"}],"characteristics":{"eventToken":"K12xYoApWqPfDlF2vvfOx3ZJRFNRMCdc84hKiEgfaartyf8vZbHfLICMmcVo4KgxribCp42SjN/gmLvBN6LDfQ=="},"correlationID":"1274576:0:0"}}],"propositionEventType":{"display":1}}},"_aida":{"user":{"login":{"id":"","type":"AIDA ID","status":"none"},"identification":{"ecid":"30850567582641884812446843562372260939","crnHashed":""},"consent":{"ucCategory":{"essential":true,"functional":true,"marketing":true}}},"site":{"cms":"AEM","name":"AIDA DE","version":"6.5.2.LTS","environment":"production"},"page":{"host":"aida.de","id":"page-fff63299d0","language":"de","name":"Weltreise 2028 | AIDA Reisen","title":"Weltreise 2028 | AIDA Reisen","type":"cruise detail page","url":"https://aida.de/finden/MAE2281103//PREMIUM?pax[adults]=2&pax[juveniles]=0&pax[children]=0&pax[babies]","path":"/finden/MAE2281103//PREMIUM","query":{"string":"?pax[adults]=2&pax[juveniles]=0&pax[children]=0&pax[babies]"},"referrer":{"host":"aida.de","path":"/reiseziele/weltreise/2028","url":"https://aida.de/reiseziele/weltreise/2028?onsite=weltreise_website_homepage_startseitenteaser_schiff_sydney_once_promo"},"cookie":{"fbp":"fb.1.1793604444663.724473752806570287","ttp":"01M6DJFRTXA3PBTK2S9MBR0B2X_.tt.1.1793604445021"},"view":{"value":1}},"tms":{"rule":{"event":{"type":"gcoe-adobe-client-data-layer.datalayer-push","info":"cmp:loaded","id":"510a0e2731"},"name":"All Pages: Set Variables & Send Page View Beacon [AEP]"},"property":{"name":"AIDA Cruises (AEM)"},"library":{"environment":"production","dateTimeBuild":"2026-10-22T08:46:28Z"},"adobeDataLayer":{"event":["cmp:show","consent_status","cmp:loaded"],"length":3}},"booking":{"cruise":{"id":"MAE2281103","name":"Weltreise 2028 142 Tage mit AIDAmar, 03.11.2028 bis 25.03.2029","ship":"AIDAmar","portStart":"WarnemÃ¼nde","portEnd":"Hamburg","duration":142,"destination":"Weltreise","route":"Weltreise 2028","dateStart":"2028-11-03","dateEnd":"2029-03-25","view":{"value":1}}},"filter":{"pointStart":["none"],"paxConfig":{"adult":2,"youth":0,"child":0,"infant":0},"dateStart":"2028-11-03","dateEnd":"2029-03-25"},"component":{"list":[]}},"commerce":{"productViews":{"value":1}},"productListItems":[{"_aida":{"type":"cabin"},"productCategories":[{"categoryID":"cabin"}],"quantity":1,"SKU":"n/a","priceTotal":0}]},"data":{"__adobe":{"analytics":{"eVar1":"AIDA DE","eVar2":"AEM v6.5.2.LTS","eVar3":"production","eVar11":"https://aida.de/finden/MAE2281103//PREMIUM?pax[adults]=2&pax[juveniles]=0&pax[children]=0&pax[babies]","eVar12":"aida.de/finden/MAE2281103//PREMIUM","eVar13":"Weltreise 2028 | AIDA Reisen","eVar14":"cruise detail page","eVar15":"page-fff63299d0","eVar16":"de","eVar21":"https://aida.de/reiseziele/weltreise/2028?onsite=weltreise_website_homepage_startseitenteaser_schiff_sydney_once_promo","eVar22":"aida.de/reiseziele/weltreise/2028","eVar23":"https://aida.de/reiseziele/weltreise/2028?onsite=weltreise_website_homepage_startseitenteaser_schiff_sydney_once_promo","eVar24":"aida.de/reiseziele/weltreise/2028","eVar31":"none","eVar32":"AIDA ID","eVar33":"","server":"aida.de","eVar233":"essential:1,functional:1,marketing:1","eVar234":"D=mid","eVar243":"AIDA Cruises (AEM)|production|2026-10-22T08:46:28Z","pageURL":"https://aida.de/finden/MAE2281103//PREMIUM?pax[adults]=2&pax[juveniles]=0&pax[children]=0&pax[babies]","pageName":"Weltreise 2028 | AIDA Reisen","referrer":"https://aida.de/reiseziele/weltreise/2028?onsite=weltreise_website_homepage_startseitenteaser_schiff_sydney_once_promo","events":"event116,event117,event118,event12,event120,event126=142,event127=732,event132,event133,event134,event166=4,event167=0,event168=5,prodView","eVar10":"pax[adults]=2&pax[juveniles]=0&pax[children]=0&pax[babies]","prop10":58,"eVar151":"2028-11-03 bis 2029-03-25","eVar153":"2:0:0:0","eVar154":"pointOfDeparture","eVar241":"cmp:show,consent_status,cmp:loaded;","eVar242":"2026-11-02T15:34:13|2026-11-02T15:34:12|1","eVar244":"All Pages: Set Variables & Send Page View Beacon [AEP]|Data Pushed|cmp:loaded","eVar121":"Weltreise 2028 142 Tage mit AIDAmar, 03.11.2028 bis 25.03.2029","eVar122":"MAE2281103","eVar123":"AIDAmar","eVar124":"WarnemÃ¼nde:Hamburg","eVar125":"Weltreise 2028:Weltreise","eVar126":"2028-11-03 bis 2029-03-25:142","eVar127":"732","eVar128":"AIDAselection","eVar129":"no:no","list1":"v128:AIDAselection,v166:MUC,v166:FRA,v166:ZRH,v166:VIE,v168:I,v168:M,v168:B,v168:P,v168:S","products":"cabin;n/a;1;0.00;event116=1|event117=0.00|event118=0.00|event120=0.00|event131=0|event132=2|event133=0|event134=0;eVar116=1|eVar117=0.00|eVar118=0.00|eVar120=0.00|eVar132=2:0:0:0|eVar134=n/a|eVar135=n/a::","eVar166":"MUC,FRA,ZRH,VIE","eVar167":"","eVar168":"I,M,B,P,S","eVar201":"","list2":"","eVar240":"web.webpagedetails.pageViews"}},"enhanced":{"fbp":"fb.1.1793604444663.724473752806570287","ttp":"01M6DJFRTXA3PBTK2S9MBR0B2X_.tt.1.1793604445021","pinun":"dWlkPU16WmpaV1F5TnpZdE1XWTFOQzAwTUdJMUxUaGpOVFF0TVdRMU1EYzRZVFE1TkRjeA","eventId":"510a0e2731","contentEventId":"b48a7cc45b"}}}],"query":{"identity":{"fetch":["ECID"]}},"meta":{"queueTimeMillis":2,"state":{"domain":"aida.de","cookiesEnabled":true}}}
+</script>
+
+<script>
+'use strict';
+
+// ---------- helpers ----------
+const $ = (sel, root = document) => root.querySelector(sel);
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const c of kids.flat(Infinity)) if (c != null && c !== false) el.append(c instanceof Node ? c : String(c));
+  return el;
+}
+const T = (s) => Date.parse(`2026-11-02T${s}+01:00`);
+const timeFmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3, hourCycle: 'h23' });
+const fmtTime = (ms) => timeFmt.format(ms);
+const fmtShort = (ms) => fmtTime(ms).slice(0, 8);
+function fmtDur(ms) {
+  const a = Math.abs(ms), sign = ms < 0 ? '−' : '+';
+  if (a < 1000) return `${sign}${Math.round(a)} ms`;
+  if (a < 60000) return `${sign}${(a / 1000).toFixed(1)} s`;
+  return `${sign}${Math.floor(a / 60000)} min ${Math.round((a % 60000) / 1000)} s`;
+}
+const clock = (ms) => [3600000, 60000, 1000].map((d, i) => String(Math.floor(ms / d) % (i ? 60 : 100)).padStart(2, '0')).join(':');
+const hostPath = (u) => { try { const x = new URL(u); return x.host + x.pathname; } catch { return u; } };
+
+// ---------- parsing (prototype of data-model.md §5) ----------
+function amKey(k) {
+  let m;
+  if (k === 'v0') return [null, 'campaign'];
+  if ((m = /^v(\d+)$/.exec(k))) return ['evars', 'eVar' + m[1]];
+  if ((m = /^c(\d+)$/.exec(k))) return ['props', 'prop' + m[1]];
+  if ((m = /^l(\d)$/.exec(k))) return ['list_vars', 'list' + m[1]];
+  if ((m = /^h(\d)$/.exec(k))) return ['hierarchies', 'hier' + m[1]];
+  return [null, { pageName: 'pageName', gn: 'pageName', g: 'pageURL', r: 'referrer', events: 'events', products: 'products', pe: 'pe', pev2: 'linkName', server: 'server', mid: 'mid', aid: 'aid', vid: 'vid', fid: 'fid' }[k] ?? null];
+}
+function sdkKey(k) {
+  if (/^eVar\d+$/.test(k)) return ['evars', k];
+  if (/^prop\d+$/.test(k)) return ['props', k];
+  if (/^list\d$/.test(k)) return ['list_vars', k];
+  if (/^hier\d$/.test(k)) return ['hierarchies', k];
+  return [null, { pageName: 'pageName', pageURL: 'pageURL', referrer: 'referrer', events: 'events', products: 'products', linkName: 'linkName', server: 'server' }[k] ?? null];
+}
+function normalize(pairs, keyOf, msgs) {
+  const n = { evars: {}, props: {}, list_vars: {}, hierarchies: {}, fields: {}, other_params: {} };
+  const seen = new Map();
+  for (const [k, v] of pairs) {
+    if (seen.has(k)) {
+      msgs.push(`parameter "${k}" repeated; first value used`);
+      const prev = n.other_params[k];
+      n.other_params[k] = Array.isArray(prev) ? [...prev, v] : [seen.get(k), v];
+      continue;
+    }
+    seen.set(k, v);
+    const [group, name] = keyOf(k);
+    if (group) n[group][name] = v; else if (name) n.fields[name] = v; else n.other_params[k] = v;
+  }
+  return n;
+}
+function lookupRef(n, ref) {
+  let [g, name] = amKey(ref);
+  if (!g && !name) [g, name] = sdkKey(ref);
+  let v = g ? n[g][name] : name ? n.fields[name] : n.other_params[ref];
+  if (v && typeof v === 'object') v = v.resolved;
+  if (typeof v === 'string' && v.startsWith('D=')) return null;
+  return v ?? null;
+}
+const refLabel = (ref) => amKey(ref)[1] ?? ref;
+function resolveRefs(n) {
+  for (const g of ['evars', 'props', 'list_vars', 'hierarchies']) {
+    for (const [k, v] of Object.entries(n[g])) {
+      if (typeof v === 'string' && v.startsWith('D=')) n[g][k] = { raw: v, ref: refLabel(v.slice(2)), resolved: lookupRef(n, v.slice(2)) };
+    }
+  }
+}
+function parseEvents(s, msgs) {
+  if (!s) return [];
+  return s.split(',').filter(Boolean).map((t) => {
+    const m = /^([^=:]+)(?:=([^:]*))?(?::(.+))?$/.exec(t.trim());
+    if (!m) { msgs.push(`events: "${t}" not understood`); return { name: t, value: null, serial: null }; }
+    return { name: m[1], value: m[2] ?? null, serial: m[3] ?? null };
+  });
+}
+function parseProducts(s, msgs) {
+  if (!s) return [];
+  return s.split(',').map((raw, i) => {
+    const [category = '', product = '', quantity = '', price = '', evs = '', vars = ''] = raw.split(';');
+    if (price && !/^-?\d+(\.\d+)?$/.test(price)) msgs.push(`products[${i + 1}]: price "${price}" is not a number`);
+    if (quantity && !/^\d+$/.test(quantity)) msgs.push(`products[${i + 1}]: quantity "${quantity}" is not a number`);
+    const p = { category: category || null, product: product || null, quantity: quantity || null, price: price || null, events: {}, evars: {}, raw };
+    for (const kv of evs.split('|').filter(Boolean)) { const j = kv.indexOf('='); p.events[j < 0 ? kv : kv.slice(0, j)] = j < 0 ? null : kv.slice(j + 1); }
+    for (const kv of vars.split('|').filter(Boolean)) { const j = kv.indexOf('='); if (j > 0) p.evars[kv.slice(0, j)] = kv.slice(j + 1); }
+    return p;
+  });
+}
+function build(source, n, x, msgs) {
+  return {
+    source, hit_type: x.hit, rsid: x.rsid ?? null, datastream_id: x.datastream_id ?? null,
+    page_name: n.fields.pageName ?? x.page_name ?? null,
+    page_url: n.fields.pageURL ?? x.page_url ?? null,
+    referrer: n.fields.referrer ?? x.referrer ?? null,
+    link_name: n.fields.linkName ?? x.link_name ?? null,
+    events: parseEvents(n.fields.events, msgs),
+    products: parseProducts(n.fields.products, msgs),
+    evars: n.evars, props: n.props, list_vars: n.list_vars, hierarchies: n.hierarchies,
+    context_data: x.context_data ?? {},
+    visitor_ids: x.visitor_ids ?? Object.fromEntries(['mid', 'aid', 'vid', 'fid'].filter((k) => n.fields[k]).map((k) => [k, n.fields[k]])),
+    other_params: { ...(n.fields.campaign ? { campaign: n.fields.campaign } : {}), ...(n.fields.server ? { server: n.fields.server } : {}), ...(n.fields.pe ? { pe: n.fields.pe } : {}), ...n.other_params },
+    xdm: x.xdm ?? null, event_type: x.event_type ?? null,
+    parse_messages: msgs, parse_status: msgs.length ? 'partial' : 'complete',
+  };
+}
+function parseAM(req) {
+  const u = new URL(req.url), msgs = [], ctx = {}, stack = [], pairs = [];
+  const m = /\/b\/ss\/([^/]+)\//.exec(u.pathname);
+  const query = req.body?.kind === 'formData' ? req.body.data : u.search;
+  for (const [k, v] of new URLSearchParams(query)) {
+    if (k.length > 1 && k.endsWith('.') && v === '') { stack.push(k.slice(0, -1)); continue; }
+    if (k.length > 1 && k.startsWith('.') && v === '') { if (stack.pop() !== k.slice(1)) msgs.push(`context data: unexpected "${k}"`); continue; }
+    if (stack.length) { ctx[[...stack.slice(1), k].join('.')] = v; continue; }
+    pairs.push([k, v]);
+  }
+  if (stack.length) msgs.push('context data: unclosed block');
+  if (req.method === 'POST' && req.body?.kind === 'unavailable') msgs.push('request body not exposed by the browser; only the URL was decoded');
+  const n = normalize(pairs, amKey, msgs);
+  resolveRefs(n);
+  const hit = n.fields.pe ? ({ lnk_o: 'link_custom', lnk_d: 'link_download', lnk_e: 'link_exit' }[n.fields.pe] ?? 'unknown') : pairs.length ? 'page_view' : 'unknown';
+  return [build('appmeasurement', n, { rsid: m ? decodeURIComponent(m[1]).split(',') : null, context_data: ctx, hit }, msgs)];
+}
+function parseSDK(req) {
+  const u = new URL(req.url);
+  let j;
+  try { j = JSON.parse(req.body.data); } catch { return [build('unknown', normalize([], sdkKey, []), { hit: 'unknown' }, ['request body is not valid JSON'])]; }
+  return (j.events ?? []).map((e) => {
+    const msgs = [], a = e.data?.__adobe?.analytics, x = e.xdm ?? {};
+    const n = normalize(a ? Object.entries(a).map(([k, v]) => [k, String(v)]) : [], sdkKey, msgs);
+    resolveRefs(n);
+    const hit = { 'web.webpagedetails.pageViews': 'page_view', 'web.webinteraction.linkClicks': 'link_custom' }[x.eventType] ?? 'websdk_event';
+    return build('websdk', n, {
+      hit, datastream_id: u.searchParams.get('configId'), event_type: x.eventType ?? null, xdm: x,
+      page_name: x.web?.webPageDetails?.name, page_url: x.web?.webPageDetails?.URL, referrer: x.web?.webReferrer?.URL,
+      link_name: x.web?.webInteraction?.name, visitor_ids: x.identityMap ?? {},
+    }, msgs);
+  });
+}
+const parseRequest = (req) => (/\/b\/ss\//.test(req.url) ? parseAM(req) : parseSDK(req));
+
+// ---------- fixtures ----------
+const AM_SAMPLE = $('#am-sample').textContent.trim();
+const SDK_SAMPLE = $('#sdk-sample').textContent.trim();
+const SDK_BASE = 'https://smetrics.aida.de/ee/irl1/v1/interact?configId=0b16336a-e19a-49e1-8911-7981ea1f46bc&requestId=';
+const TABS = {
+  t1: { badge: 'T1', browser_tab_id: 1187042, title: 'Weltreise 2028 | AIDA Reisen', url: 'https://aida.de/buchung/reisende' },
+  t2: { badge: 'T2', browser_tab_id: 1187055, title: 'Karriere bei der Deutschen Bahn - Jetzt bewerben!', url: 'https://db.jobs/de-de/Suche?query=Data' },
+};
+const AM_HEADERS = [['Accept', 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'], ['Referer', 'https://db.jobs/'], ['User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) … Chrome/156.0.0.0 Safari/537.36']];
+const SDK_HEADERS = [['Content-Type', 'text/plain; charset=UTF-8'], ['Origin', 'https://aida.de'], ['Referer', 'https://aida.de/'], ['User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) … Chrome/156.0.0.0 Safari/537.36']];
+
+function amReq(ts, tab, edit) {
+  const u = new URL(AM_SAMPLE);
+  u.pathname = u.pathname.replace(/s\d+$/, 's' + String(ts).slice(-11));
+  if (edit) edit(u.searchParams);
+  return { tab, ts, method: 'GET', type: 'image', url: edit ? u.href : AM_SAMPLE, headers: AM_HEADERS, body: null };
+}
+function sdkReq(ts, tab, id, edit) {
+  const j = JSON.parse(SDK_SAMPLE);
+  if (edit) edit(j.events[0].xdm, j.events[0].data.__adobe.analytics);
+  return { tab, ts, method: 'POST', type: 'xmlhttprequest', url: SDK_BASE + id, headers: SDK_HEADERS, body: { kind: 'raw', content_type: 'text/plain; charset=UTF-8', data: edit ? JSON.stringify(j) : SDK_SAMPLE } };
+}
+function fixtureRequests() {
+  return [
+    sdkReq(T('16:34:13.447'), 't1', 'd2ec438c-e807-4527-a041-b6398c2a3c9c'),
+    sdkReq(T('16:34:41.118'), 't1', '5b1f0c2e-7a51-4d8e-9a0b-3c1d0e9f7a11', (x, a) => {
+      x.eventType = 'web.webinteraction.linkClicks';
+      x.web.webInteraction = { name: 'Kabine wählen', type: 'other', linkClicks: { value: 1 } };
+      Object.assign(a, { linkName: 'Kabine wählen', events: 'event20' });
+      delete a.products;
+    }),
+    sdkReq(T('16:34:41.870'), 't1', '8c3e2d41-0b6f-4f0a-8e7d-2a9b1c4d5e60', (x, a) => {
+      x.web.webPageDetails.URL = 'https://aida.de/finden/MAE2281103//PREMIUM/kabine';
+      Object.assign(a, { pageName: 'Kabinenauswahl | AIDA Reisen', pageURL: x.web.webPageDetails.URL, eVar13: 'Kabinenauswahl | AIDA Reisen', events: 'prodView,scAdd,event116', products: 'cabin;Balkonkabine;1;12990.00 EUR;event116=1' });
+    }),
+    amReq(T('16:35:31.204'), 't2'),
+    amReq(T('16:35:48.912'), 't2', (p) => { p.set('pe', 'lnk_o'); p.set('pev2', 'Header: Jobs finden'); p.set('events', 'event5'); }),
+    amReq(T('16:35:49.611'), 't2', (p) => {
+      p.set('pageName', 'DBGCP_DE_WEB_Jobsuche'); p.set('v11', 'DBGCP_DE_WEB_Jobsuche'); p.set('g', 'https://db.jobs/de-de/Suche?query=Data');
+      p.set('v14', 'https://db.jobs/de-de/Suche?query=Data'); p.set('c13', 'Jobsuche | DB Karriere'); p.set('events', 'event10');
+    }),
+    { tab: 't2', ts: T('16:36:20.444'), method: 'POST', type: 'ping', url: 'https://dbsystelentities.d3.sc.omtrdc.net/b/ss/dbsedbagkp/1/JS-2.27.0-LGU4/s91233412', headers: [['Content-Type', 'text/plain;charset=UTF-8'], ['Origin', 'https://db.jobs']], body: { kind: 'unavailable', content_type: null, data: null } },
+    sdkReq(T('16:36:41.002'), 't1', 'e4a9b7c2-3d18-4f5e-b6a0-9c8d7e6f5a43', (x, a) => {
+      x.web.webPageDetails.URL = 'https://aida.de/buchung/reisende';
+      Object.assign(a, { pageName: 'Buchung: Reisende | AIDA Reisen', pageURL: x.web.webPageDetails.URL, eVar13: 'Buchung: Reisende | AIDA Reisen', events: 'scCheckout', products: 'cabin;Balkonkabine;1;12990.00' });
+    }),
+  ];
+}
+const NAVS = [
+  { tab: 't1', kind: 'document', transition: 'link', ts: T('16:34:10.002'), url: 'https://aida.de/finden/MAE2281103//PREMIUM?pax[adults]=2&pax[juveniles]=0&pax[children]=0&pax[babies]' },
+  { tab: 't1', kind: 'history', ts: T('16:34:41.250'), url: 'https://aida.de/finden/MAE2281103//PREMIUM/kabine' },
+  { tab: 't2', kind: 'document', transition: 'typed', ts: T('16:35:30.880'), url: 'https://db.jobs/de-de' },
+  { tab: 't2', kind: 'history', ts: T('16:35:49.300'), url: 'https://db.jobs/de-de/Suche?query=Data' },
+  { tab: 't1', kind: 'history', ts: T('16:36:40.700'), url: 'https://aida.de/buchung/reisende' },
+];
+const GAPS = [
+  { kind: 'pause', ts: T('16:35:02.000'), to: T('16:35:20.500') },
+  { kind: 'restart', ts: T('16:36:05.120') },
+];
+let seq = 0;
+function ingest(req) {
+  req.capture_id = 'cap_' + String(++seq).padStart(3, '0');
+  req.capture_method = 'webRequest';
+  req.result = { status_code: req.type === 'ping' ? 204 : 200 };
+  return parseRequest(req).map((e, i) => Object.assign(e, { event_id: 'evt_' + String(seq).padStart(3, '0') + (i ? '_' + i : ''), capture_id: req.capture_id, ts: req.ts, tab: req.tab, req, tracking_server: new URL(req.url).host, request_method: req.method, capture_method: 'webRequest', event_index: i }));
+}
+
+// ---------- state ----------
+const PROFILES = [
+  { id: 'checkout', name: 'Checkout Monitoring', include: ['prodView', 'scAdd', 'scCheckout', 'purchase'].map((v) => ({ field: 'event', op: 'equals', value: v })), exclude: [] },
+  { id: 'db', name: 'DB Jobs only', include: [{ field: 'rsid', op: 'equals', value: 'dbsedbagkp' }], exclude: [{ field: 'hit_type', op: 'equals', value: 'link_custom' }] },
+];
+const rule = (field, value, op = 'equals') => ({ field, op, value });
+const S = {
+  status: 'recording', view: 'live', settingsOpen: false, permission: 'granted', banner: null,
+  sessions: [], current: null, events: [], profileId: '', onlyMatching: true, search: '', warningsOnly: false,
+  journeyGroup: 'merged', funnelId: 'aida', editingFunnel: null, selected: null, inspList: [], inspTab: 'overview',
+  autoScroll: true, startedAt: Date.now() - 158000, renaming: null,
+  settings: { retainRaw: true, masking: '', custom: '' },
+  funnels: [
+    { id: 'aida', name: 'AIDA Buchung', steps: [
+      { name: 'Reise angesehen', rule: rule('event', 'prodView') },
+      { name: 'In den Warenkorb', rule: rule('event', 'scAdd') },
+      { name: 'Kabine gewählt', rule: rule('event', 'event20') },
+      { name: 'Reisende erfasst', rule: rule('event', 'event30') },
+      { name: 'Checkout', rule: rule('event', 'scCheckout') },
+      { name: 'Kauf', rule: rule('event', 'purchase') },
+    ] },
+    { id: 'db', name: 'DB Jobs: Bewerbung', steps: [
+      { name: 'Karriere-Startseite', rule: rule('page_name', 'DBGCP_DE_WEB_KarriereUndJobsBeiDerDb') },
+      { name: 'Jobsuche', rule: rule('event', 'event10') },
+      { name: 'Bewerbung gestartet', rule: rule('event', 'event7') },
+    ] },
+  ],
+};
+function baseSessions() {
+  return [
+    { id: 's1', name: 'Weltreise + DB Jobs check', started: T('16:34:05.000'), stopped: null, status: 'recording', hits: 0, tabs: 2, hasData: true },
+    { id: 's2', name: 'Checkout test 1', started: Date.parse('2026-10-30T14:02:11+01:00'), stopped: Date.parse('2026-10-30T14:14:40+01:00'), status: 'stopped', hits: 142, tabs: 3 },
+    { id: 's3', name: 'Consent banner check', started: Date.parse('2026-10-28T09:20:00+01:00'), stopped: Date.parse('2026-10-28T09:23:05+01:00'), status: 'stopped', hits: 9, tabs: 1 },
+  ];
+}
+function applyScenario(name) {
+  seq = 0;
+  Object.assign(S, { banner: null, selected: null, profileId: '', search: '', warningsOnly: false, settingsOpen: false, view: 'live', autoScroll: true, permission: 'granted', startedAt: Date.now() - 158000 });
+  S.sessions = baseSessions();
+  S.current = S.sessions[0];
+  S.events = fixtureRequests().flatMap(ingest);
+  S.status = 'recording';
+  if (name === 'paused') S.status = 'paused';
+  if (name === 'stopped') { S.status = 'stopped'; S.current.status = 'stopped'; S.current.stopped = T('16:37:02.000'); }
+  if (name === 'nohits') { S.events = []; S.startedAt = Date.now() - 12000; }
+  if (name === 'idle') { S.status = 'none'; S.sessions = []; S.current = null; S.events = []; S.permission = 'prompt'; }
+  if (name === 'storage') S.banner = { type: 'error', text: 'Could not save new hits: browser storage is full. 3 hits were dropped. Export and delete old recordings in Sessions.', action: ['Open Sessions', () => setView('sessions')] };
+  if (name === 'capture') S.banner = { type: 'error', text: 'Capture error: some requests may be missing. Details in the extension console.', action: null };
+  if (S.current) S.current.status = S.status === 'stopped' ? 'stopped' : S.status;
+  renderAll();
+}
+
+// ---------- matching ----------
+const plain = (v) => (v && typeof v === 'object' ? v.resolved ?? v.raw : v);
+function fieldValues(e, f) {
+  if (f === 'event') return e.events.map((x) => x.name);
+  if (f === 'rsid') return e.rsid ?? [];
+  if (f === 'tab') return [TABS[e.tab].badge];
+  if (f.startsWith('evar:')) return [plain(e.evars['eVar' + f.slice(5)])];
+  if (f.startsWith('prop:')) return [plain(e.props['prop' + f.slice(5)])];
+  return [e[f]];
+}
+function matchRule(e, r) {
+  const vals = fieldValues(e, r.field).filter((v) => v != null).map(String);
+  if (r.op === 'exists') return vals.length > 0;
+  if (r.op === 'contains') return vals.some((v) => v.toLowerCase().includes(String(r.value).toLowerCase()));
+  return vals.includes(r.value);
+}
+const matchesProfile = (e, p) => (!p.include.length || p.include.some((r) => matchRule(e, r))) && !p.exclude.some((r) => matchRule(e, r));
+const ruleText = (r) => `${r.field} ${r.op} ${r.value ?? ''}`.trim();
+const profile = () => PROFILES.find((p) => p.id === S.profileId) ?? null;
+const warnings = () => S.events.filter((e) => e.parse_status !== 'complete').length;
+function searchHit(e, q) {
+  q = q.toLowerCase();
+  const vals = [e.page_name, e.link_name, e.page_url, ...e.events.map((x) => x.name), ...Object.values(e.evars).map(plain), ...Object.values(e.props).map(plain)];
+  return vals.some((v) => v != null && String(v).toLowerCase().includes(q));
+}
+
+// ---------- header ----------
+let tick;
+function renderHeader() {
+  const hdr = $('#hdr');
+  const st = { recording: ['● Recording', 'recording'], paused: ['❚❚ Paused', ''], stopped: ['■ Stopped', ''], none: ['○ Not recording', ''] }[S.status];
+  const elapsed = h('span', { class: 'mono muted', id: 'elapsed' });
+  const updateElapsed = () => { elapsed.textContent = S.status === 'recording' || S.status === 'paused' ? clock(Date.now() - S.startedAt) : S.current?.stopped ? clock(S.current.stopped - S.current.started) : ''; };
+  updateElapsed();
+  clearInterval(tick);
+  if (S.status === 'recording') tick = setInterval(updateElapsed, 1000);
+
+  const btns = [];
+  if (S.status === 'none' || S.status === 'stopped') btns.push(h('button', { type: 'button', class: 'primary', onclick: startRecording }, S.status === 'none' ? 'Start recording' : 'New recording'));
+  if (S.status === 'recording') btns.push(h('button', { type: 'button', onclick: () => setStatus('paused') }, 'Pause'));
+  if (S.status === 'paused') btns.push(h('button', { type: 'button', onclick: () => setStatus('recording') }, 'Resume'));
+  if (S.status === 'recording' || S.status === 'paused') btns.push(h('button', { type: 'button', onclick: () => setStatus('stopped') }, 'Stop'));
+  const w = warnings();
+  const counts = S.current ? h('span', { class: 'counts' },
+    h('span', {}, `${S.events.length} hits · ${new Set(S.events.map((e) => e.tab)).size} tabs`),
+    w ? h('button', { type: 'button', class: 'warnbtn', 'aria-pressed': String(S.warningsOnly), title: 'Show only hits with decoding warnings', onclick: () => { S.warningsOnly = !S.warningsOnly; setView('live'); } }, `⚠ ${w}`) : null) : null;
+
+  let banner = null;
+  if (S.banner?.type === 'prompt') {
+    banner = h('div', { class: 'banner prompt', role: 'group', 'aria-label': 'Simulated Chrome permission prompt' },
+      h('span', { class: 'muted' }, 'Simulated Chrome prompt:'),
+      h('strong', {}, 'Journey Recorder requests: Read and change all your data on all websites'),
+      h('div', { class: 'actions' },
+        h('button', { type: 'button', class: 'primary', onclick: () => permissionAnswer(true) }, 'Allow'),
+        h('button', { type: 'button', onclick: () => permissionAnswer(false) }, 'Deny')));
+  } else if (S.banner) {
+    banner = h('div', { class: 'banner error', role: 'alert' }, h('span', {}, S.banner.text),
+      S.banner.action ? h('div', { class: 'actions' }, h('button', { type: 'button', onclick: S.banner.action[1] }, S.banner.action[0])) : null);
+  }
+  hdr.replaceChildren(
+    h('div', { class: 'status-line' },
+      h('span', { class: 'status ' + st[1], role: 'status' }, st[0]),
+      h('span', { class: 'session-name', title: S.current?.name ?? '' }, S.current?.name ?? ''),
+      elapsed),
+    h('div', { class: 'controls' }, btns, counts),
+    banner ?? '');
+}
+function startRecording() {
+  if (S.permission !== 'granted') { S.banner = { type: 'prompt' }; renderHeader(); $('#hdr .banner button')?.focus(); return; }
+  createSession();
+}
+function permissionAnswer(ok) {
+  if (ok) { S.permission = 'granted'; S.banner = null; createSession(); return; }
+  S.banner = { type: 'error', text: 'Recording needs access to all sites, because tracking servers can be on any domain.', action: ['Try again', startRecording] };
+  renderHeader();
+}
+function createSession() {
+  if (S.current) Object.assign(S.current, { events: S.events, status: 'stopped', stopped: S.current.stopped ?? Date.now() });
+  const s = { id: 's' + Date.now(), name: `Recording 2026-11-02 ${fmtShort(Date.now()).slice(0, 5)}`, started: Date.now(), stopped: null, status: 'recording', hits: 0, tabs: 0, hasData: true };
+  S.sessions.unshift(s);
+  Object.assign(S, { current: s, events: [], status: 'recording', startedAt: Date.now(), banner: null, selected: null });
+  toast('Recording started. Closing the panel does not stop it.');
+  renderAll();
+}
+function setStatus(st) {
+  S.status = st;
+  if (S.current) { S.current.status = st; if (st === 'stopped') S.current.stopped = Date.now(); }
+  if (st === 'stopped') toast('Recording stopped. Data is kept in Sessions.');
+  renderAll();
+}
+
+// ---------- views ----------
+function setView(v) { S.view = v; S.settingsOpen = false; S.selected = null; renderAll(); }
+function renderTabs() {
+  for (const t of $('#tabs').querySelectorAll('[role="tab"]')) {
+    const on = !S.settingsOpen && t.dataset.view === S.view;
+    t.setAttribute('aria-selected', String(on));
+    t.tabIndex = on || (S.settingsOpen && t.dataset.view === 'live') ? 0 : -1;
+  }
+  $('#gear').setAttribute('aria-pressed', String(S.settingsOpen));
+  $('#views').setAttribute('aria-labelledby', S.settingsOpen ? 'gear' : 'tab-' + S.view);
+}
+function renderAll() {
+  renderHeader();
+  renderTabs();
+  const inspecting = S.selected != null;
+  $('#tabs').hidden = inspecting;
+  $('#views').hidden = inspecting;
+  $('#inspector').hidden = !inspecting;
+  if (inspecting) { renderInspector(); return; }
+  const v = S.settingsOpen ? 'settings' : S.view;
+  $('#views').scrollTop = 0;
+  ({ live: renderLive, journey: renderJourney, funnel: renderFunnel, sessions: renderSessions, settings: renderSettings })[v]();
+}
+function empty(title, text, ...extra) { return h('div', { class: 'empty' }, h('strong', {}, title), h('span', {}, text), ...extra); }
+
+function eventRow(e, opts = {}) {
+  const tab = TABS[e.tab];
+  const srcLabel = { appmeasurement: 'AM', websdk: 'SDK', unknown: '?' }[e.source];
+  const srcTitle = { appmeasurement: 'AppMeasurement', websdk: 'Web SDK', unknown: 'Unknown format' }[e.source];
+  const hitLabel = { page_view: 'page', link_custom: 'link', link_download: 'download', link_exit: 'exit link', websdk_event: e.event_type ?? 'event', unknown: e.request_method === 'POST' ? 'beacon' : 'unknown' }[e.hit_type];
+  const title = e.hit_type.startsWith('link') && e.link_name ? `link: ${e.link_name}` : e.page_name ?? '(no page name)';
+  const evs = e.events.length ? e.events.map((x) => x.name).join(' · ') : 'no events';
+  return h('button', { type: 'button', class: 'row' + (opts.match ? ' match' : ''), 'data-id': e.event_id, onclick: () => openInspector(e.event_id, opts.list) },
+    h('span', { class: 'meta' },
+      h('span', { class: 'mono' }, fmtTime(e.ts)),
+      h('span', { class: 'badge', title: tab.title }, tab.badge),
+      h('span', { class: 'badge', title: srcTitle }, srcLabel),
+      h('span', {}, hitLabel),
+      e.parse_status !== 'complete' ? h('span', { class: 'pstat ' + e.parse_status }, e.parse_status === 'partial' ? '⚠ partial' : '✗ failed') : null,
+      opts.match ? h('span', {}, '★ match') : null,
+      opts.delta != null ? h('span', { class: 'delta' }, fmtDur(opts.delta)) : null),
+    h('span', { class: 'title' }, title),
+    h('span', { class: 'evs' }, evs));
+}
+function listKeys(ev) {
+  if (ev.key !== 'ArrowDown' && ev.key !== 'ArrowUp') return;
+  const rows = [...ev.currentTarget.querySelectorAll('.row')];
+  const i = rows.indexOf(document.activeElement);
+  if (i < 0) return;
+  ev.preventDefault();
+  rows[Math.max(0, Math.min(rows.length - 1, i + (ev.key === 'ArrowDown' ? 1 : -1)))].focus();
+}
+
+// Live
+function liveItems() {
+  const p = profile();
+  return S.events
+    .map((e) => ({ e, match: p ? matchesProfile(e, p) : false }))
+    .filter(({ e, match }) => (!S.warningsOnly || e.parse_status !== 'complete') && (!S.search || searchHit(e, S.search)) && (!p || !S.onlyMatching || match));
+}
+function renderLive() {
+  const views = $('#views');
+  if (!S.current) {
+    views.replaceChildren(empty('Not recording.', 'Press Start recording, then browse as usual. Recording continues across tabs and when this panel is closed.'));
+    return;
+  }
+  if (!S.events.length) {
+    const txt = S.status === 'recording'
+      ? 'Recording. No Adobe Analytics requests detected yet. Load a page that uses AppMeasurement or the Web SDK, or add a custom tracking pattern in Settings.'
+      : 'This recording has no hits.';
+    views.replaceChildren(empty(S.status === 'recording' ? 'Waiting for hits…' : 'Empty recording', txt));
+    return;
+  }
+  const sel = h('select', { 'aria-label': 'Filter profile', onchange: (e) => { S.profileId = e.target.value; renderLive(); } },
+    h('option', { value: '' }, 'No filter'), PROFILES.map((p) => h('option', { value: p.id, selected: p.id === S.profileId }, p.name)));
+  const only = h('label', {}, h('input', { type: 'checkbox', checked: S.onlyMatching, disabled: !S.profileId, onchange: (e) => { S.onlyMatching = e.target.checked; renderLiveList(); } }), ' only matching');
+  const search = h('input', { type: 'search', class: 'grow', placeholder: 'Search events, page, values', 'aria-label': 'Search', value: S.search, oninput: (e) => { S.search = e.target.value; renderLiveList(); } });
+  const info = h('div', { class: 'info', id: 'live-info' });
+  views.replaceChildren(h('div', { class: 'toolbar' }, sel, only, search, info), h('ol', { class: 'list', id: 'live-list', onkeydown: listKeys }));
+  renderLiveList();
+  views.onscroll = () => {
+    if (S.view !== 'live' || S.settingsOpen) return;
+    S.autoScroll = views.scrollTop + views.clientHeight >= views.scrollHeight - 24;
+    $('#jump')?.toggleAttribute('hidden', S.autoScroll);
+  };
+}
+function renderLiveList() {
+  const list = $('#live-list');
+  if (!list) return;
+  const items = liveItems(), p = profile();
+  const filtered = p || S.search || S.warningsOnly;
+  $('#live-info').replaceChildren(
+    h('span', {}, filtered ? `${items.length} of ${S.events.length} shown${S.warningsOnly ? ' · warnings only' : ''}` : `${S.events.length} hits`),
+    filtered ? h('button', { type: 'button', class: 'link', onclick: () => { Object.assign(S, { profileId: '', search: '', warningsOnly: false }); renderAll(); } }, 'Clear') : '');
+  const ids = items.map(({ e }) => e.event_id);
+  if (!items.length) {
+    list.replaceChildren(h('li', {}, empty('No events match.', `${S.events.length} events are hidden by ${p ? `"${p.name}"` : 'the current criteria'}. The recording is unchanged.`,
+      h('button', { type: 'button', onclick: () => { Object.assign(S, { profileId: '', search: '', warningsOnly: false }); renderAll(); } }, 'Clear filter'))));
+    return;
+  }
+  list.replaceChildren(...items.map(({ e, match }) => h('li', {}, eventRow(e, { match: p && !S.onlyMatching && match, list: ids }))),
+    h('li', {}, h('button', { type: 'button', class: 'jump', id: 'jump', hidden: true, onclick: () => { S.autoScroll = true; scrollBottom(); } }, '↓ Jump to latest')));
+  if (S.autoScroll) scrollBottom();
+}
+const scrollBottom = () => { const v = $('#views'); v.scrollTop = v.scrollHeight; };
+
+// Journey
+function journeyEntries() {
+  const ev = S.events.map((e) => ({ type: 'event', ts: e.ts, tab: e.tab, e }));
+  if (S.current?.id !== 's1') return ev;
+  return [...ev, ...NAVS.map((n) => ({ type: 'nav', ts: n.ts, tab: n.tab, n })), ...GAPS.map((g) => ({ type: 'gap', ts: g.ts, g }))].sort((a, b) => a.ts - b.ts);
+}
+function gapRow(g) {
+  return h('li', { class: 'gap' }, g.kind === 'pause'
+    ? `❚❚ Paused ${fmtShort(g.ts)}–${fmtShort(g.to)} (${fmtDur(g.to - g.ts).slice(1)}). Nothing recorded.`
+    : `⟳ Extension restarted at ${fmtShort(g.ts)}. Requests during the restart may be missing.`);
+}
+function navRow(n) {
+  return h('li', { class: 'sep' }, `${TABS[n.tab].badge} · ${n.kind === 'document' ? '⤓ page load' : n.kind === 'history' ? '↪ SPA route' : '# fragment'} · ${hostPath(n.url)}`);
+}
+function renderJourney() {
+  const views = $('#views');
+  if (!S.events.length) { views.replaceChildren(empty('No journey yet.', S.current ? 'Hits appear here grouped by tab and page once they are detected.' : 'Start a recording or open a saved one in Sessions.')); return; }
+  const seg = h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Group by' },
+    [['merged', 'Merged'], ['tab', 'By tab'], ['page', 'By page']].map(([v, l]) =>
+      h('label', {}, h('input', { type: 'radio', name: 'jg', value: v, checked: S.journeyGroup === v, onchange: () => { S.journeyGroup = v; renderJourney(); $(`input[name="jg"][value="${v}"]`).focus(); } }), h('span', {}, l))));
+  const out = [];
+  const entries = journeyEntries();
+  const ids = entries.filter((x) => x.type === 'event').map((x) => x.e.event_id);
+  const listOf = (items) => {
+    let prev = null;
+    return h('ol', { class: 'list', onkeydown: listKeys }, items.map((x) => {
+      if (x.type === 'gap') return gapRow(x.g);
+      if (x.type === 'nav') return navRow(x.n);
+      const d = prev == null ? null : x.ts - prev;
+      prev = x.ts;
+      return h('li', {}, eventRow(x.e, { delta: d, list: ids }));
+    }));
+  };
+  if (S.journeyGroup === 'merged') out.push(listOf(entries));
+  if (S.journeyGroup === 'tab') {
+    for (const [id, t] of Object.entries(TABS)) {
+      const items = entries.filter((x) => x.tab === id || x.type === 'gap');
+      if (!items.some((x) => x.type === 'event')) continue;
+      out.push(h('h3', { class: 'group-h' }, `${t.badge} · ${t.title}`), listOf(items));
+    }
+  }
+  if (S.journeyGroup === 'page') {
+    const groups = [];
+    const open = {};
+    for (const x of entries) {
+      if (x.type === 'gap') { groups.push({ gap: x }); continue; }
+      if (x.type === 'nav' || !open[x.tab]) {
+        const g = { head: x.type === 'nav' ? x.n : { tab: x.tab, kind: 'unknown', url: x.e.page_url ?? '' }, items: [] };
+        groups.push(g); open[x.tab] = g;
+        if (x.type === 'nav') continue;
+      }
+      open[x.tab].items.push(x);
+    }
+    for (const g of groups) {
+      if (g.gap) { out.push(h('ol', { class: 'list' }, gapRow(g.gap.g))); continue; }
+      if (!g.items.length) continue;
+      const kind = { document: 'page load', history: 'SPA route', fragment: 'fragment', unknown: 'before first navigation' }[g.head.kind];
+      out.push(h('h3', { class: 'group-h' }, `${TABS[g.head.tab].badge} · ${kind} · ${hostPath(g.head.url)}`), listOf(g.items));
+    }
+  }
+  views.replaceChildren(
+    h('div', { class: 'toolbar' }, h('span', {}, 'Group'), seg, h('div', { class: 'info' }, h('span', {}, 'Order = observed time. Cross-tab order does not imply cause.'))),
+    ...out);
+}
+
+// Funnel
+function evalFunnel(f, events) {
+  const res = [];
+  const matches = f.steps.map((s) => events.filter((e) => matchRule(e, s.rule)));
+  f.steps.forEach((s, i) => {
+    const m = matches[i];
+    if (!m.length) { res.push({ s, status: matches.slice(i + 1).some((x) => x.length) ? 'missing' : 'pending' }); return; }
+    const prev = res.filter((r) => r.first).map((r) => r.first.ts);
+    const last = prev.length ? Math.max(...prev) : null;
+    res.push({ s, first: m[0], count: m.length, status: last != null && m[0].ts < last ? 'out_of_order' : 'reached', delta: last == null ? null : m[0].ts - last });
+  });
+  return res;
+}
+function renderFunnel() {
+  const views = $('#views');
+  if (S.editingFunnel) { renderFunnelEditor(); return; }
+  const f = S.funnels.find((x) => x.id === S.funnelId);
+  const bar = h('div', { class: 'toolbar' },
+    h('select', { 'aria-label': 'Funnel', class: 'grow', onchange: (e) => { S.funnelId = e.target.value; renderFunnel(); } }, S.funnels.map((x) => h('option', { value: x.id, selected: x.id === S.funnelId }, x.name))),
+    h('button', { type: 'button', onclick: () => { S.editingFunnel = structuredClone(f); renderFunnel(); } }, 'Edit'),
+    h('button', { type: 'button', onclick: () => { const n = { id: 'f' + Date.now(), name: 'New funnel', steps: [] }; S.funnels.push(n); S.funnelId = n.id; S.editingFunnel = structuredClone(n); renderFunnel(); } }, 'New'),
+    h('div', { class: 'info' }, h('span', {}, `Session: ${S.current?.name ?? 'none'}`), h('button', { type: 'button', class: 'link', onclick: () => setView('sessions') }, 'Change')));
+  if (!f.steps.length) { views.replaceChildren(bar, empty('No steps yet.', 'Add the first step, for example: event equals prodView.', h('button', { type: 'button', onclick: () => { S.editingFunnel = structuredClone(f); renderFunnel(); } }, 'Add first step'))); return; }
+  if (!S.events.length) { views.replaceChildren(bar, empty('Nothing to evaluate.', 'The selected session has no hits yet. Steps show as pending until matching events arrive.')); return; }
+  const res = evalFunnel(f, S.events);
+  const sum = (st) => res.filter((r) => r.status === st).length;
+  const label = { reached: '✓ reached', out_of_order: '⇅ out of order', missing: '✗ missing', pending: '… pending' };
+  const ids = res.filter((r) => r.first).map((r) => r.first.event_id);
+  views.replaceChildren(bar, h('div', { class: 'view' },
+    h('p', {}, `${sum('reached') + sum('out_of_order')} of ${res.length} steps reached · ${sum('missing')} missing · ${sum('pending')} pending. Based on observed tracking calls only.`),
+    h('ol', { class: 'steps' }, res.map((r, i) => h('li', {},
+      h('span', {}, h('span', { class: 'st ' + r.status }, label[r.status]), ` · ${i + 1}. ${r.s.name}`),
+      h('span', { class: 'muted mono' }, ruleText(r.s.rule)),
+      r.first ? h('span', {}, `${fmtTime(r.first.ts)} · ${TABS[r.first.tab].badge}`, r.delta != null ? (r.delta < 0 ? ` · ${fmtDur(-r.delta).slice(1)} before the previous step` : ` · ${fmtDur(r.delta)} after previous step`) : '', r.count > 1 ? ` · ↺ repeated ×${r.count}` : '') : null,
+      r.status === 'out_of_order' ? h('span', {}, 'Occurred before an earlier step was reached.') : null,
+      r.status === 'missing' ? h('span', {}, 'Not observed, but a later step was reached.') : null,
+      r.first ? h('span', {}, h('button', { type: 'button', class: 'link', onclick: () => openInspector(r.first.event_id, ids) }, 'Show hit')) : null)))));
+}
+function renderFunnelEditor() {
+  const f = S.editingFunnel;
+  const fields = ['event', 'page_name', 'page_url', 'hit_type', 'source', 'rsid', 'tab', 'evar:1', 'prop:1'];
+  const ops = ['equals', 'contains', 'exists'];
+  const rows = f.steps.map((s, i) => h('div', { class: 'editor-row', role: 'group', 'aria-label': `Step ${i + 1}` },
+    h('input', { class: 'full', 'aria-label': `Step ${i + 1} name`, value: s.name, oninput: (e) => { s.name = e.target.value; } }),
+    h('select', { 'aria-label': `Step ${i + 1} field`, onchange: (e) => { s.rule.field = e.target.value; } }, fields.map((x) => h('option', { selected: x === s.rule.field }, x))),
+    h('select', { 'aria-label': `Step ${i + 1} operator`, onchange: (e) => { s.rule.op = e.target.value; } }, ops.map((x) => h('option', { selected: x === s.rule.op }, x))),
+    h('input', { 'aria-label': `Step ${i + 1} value`, value: s.rule.value ?? '', oninput: (e) => { s.rule.value = e.target.value; } }),
+    h('button', { type: 'button', onclick: () => { f.steps.splice(i, 1); renderFunnelEditor(); } }, 'Remove')));
+  $('#views').replaceChildren(h('div', { class: 'view' },
+    h('label', { class: 'field' }, 'Funnel name', h('input', { value: f.name, oninput: (e) => { f.name = e.target.value; } })),
+    h('small', { class: 'muted' }, 'Funnels are global and evaluated against the selected session.'),
+    ...rows,
+    h('p', {}, h('button', { type: 'button', onclick: () => { f.steps.push({ name: `Step ${f.steps.length + 1}`, rule: rule('event', '') }); renderFunnelEditor(); } }, '+ Add step')),
+    h('div', { class: 'controls' },
+      h('button', { type: 'button', class: 'primary', onclick: () => { const i = S.funnels.findIndex((x) => x.id === f.id); S.funnels[i] = f; S.editingFunnel = null; toast('Funnel saved.'); renderFunnel(); } }, 'Save'),
+      h('button', { type: 'button', onclick: () => { S.editingFunnel = null; renderFunnel(); } }, 'Cancel'))));
+}
+
+// Sessions
+function renderSessions() {
+  const views = $('#views');
+  if (!S.sessions.length) { views.replaceChildren(empty('No saved recordings.', 'Recordings are stored locally in this browser profile until you delete them.')); return; }
+  const cards = S.sessions.map((s) => {
+    const isCur = s === S.current, active = s.status === 'recording' || s.status === 'paused';
+    const hits = isCur ? S.events.length : s.hits;
+    const dur = (s.stopped ?? Date.now()) - s.started;
+    const name = S.renaming === s.id
+      ? h('form', { onsubmit: (e) => { e.preventDefault(); s.name = e.target.elements.n.value.trim() || s.name; S.renaming = null; renderAll(); } },
+          h('input', { name: 'n', value: s.name, 'aria-label': 'Recording name' }), ' ', h('button', { type: 'submit' }, 'Save'))
+      : h('strong', {}, s.name, isCur ? ' (shown)' : '');
+    return h('li', { class: 'card' }, name,
+      h('span', { class: 'muted' }, `${{ recording: '● recording', paused: '❚❚ paused', stopped: '■ stopped' }[s.status]} · ${new Date(s.started).toLocaleString('en-GB', { timeZone: 'Europe/Berlin', dateStyle: 'short', timeStyle: 'short' })} · ${clock(dur)} · ${hits} hits · ${isCur ? new Set(S.events.map((e) => e.tab)).size : s.tabs} tabs`),
+      h('div', { class: 'actions' },
+        h('button', { type: 'button', onclick: () => openSession(s) }, 'Open'),
+        h('button', { type: 'button', onclick: () => { S.renaming = s.id; renderSessions(); $('#views input[name="n"]')?.focus(); } }, 'Rename'),
+        h('button', { type: 'button', onclick: () => exportSession(s, 'json') }, 'JSON'),
+        h('button', { type: 'button', onclick: () => exportSession(s, 'csv') }, 'CSV'),
+        h('button', { type: 'button', disabled: active, title: active ? 'Stop the recording before deleting it' : null, onclick: () => confirmDelete(s, hits) }, 'Delete')));
+  });
+  views.replaceChildren(h('div', { class: 'view' },
+    h('p', { class: 'muted' }, 'Using 4.2 MB of browser storage. Recordings are kept until you delete them.'),
+    h('ol', { class: 'list' }, cards)));
+}
+function openSession(s) {
+  if (!s.hasData) { toast('Mock: no fixture data for this session.'); return; }
+  if (S.current) S.current.events = S.events;
+  S.current = s;
+  S.events = s.events ?? S.events;
+  S.status = s.status;
+  setView('live');
+}
+function confirmDelete(s, hits) {
+  const d = $('#confirm');
+  $('#confirm-text').textContent = `Delete "${s.name}"? ${hits} hits are removed from this browser. This cannot be undone.`;
+  $('#confirm-ok').onclick = () => {
+    S.sessions = S.sessions.filter((x) => x !== s);
+    if (S.current === s) { S.current = null; S.events = []; S.status = 'none'; }
+    d.close(); toast(`Deleted "${s.name}".`); renderAll();
+  };
+  $('#confirm-cancel').onclick = () => d.close();
+  d.showModal();
+  $('#confirm-cancel').focus();
+}
+function exportSession(s, fmt) {
+  if (s !== S.current || !s.hasData) { toast('Mock: export only for the shown session.'); return; }
+  const strip = ({ req, ...e }) => ({ ...e, timestamp: new Date(e.ts).toISOString() });
+  let text, type;
+  if (fmt === 'json') {
+    const reqs = [...new Set(S.events.map((e) => e.req))].map(({ tab, ts, ...r }) => ({ ...r, tab_id: tab, timestamp: new Date(ts).toISOString() }));
+    text = JSON.stringify({ format: 'aajr-session', format_version: 1, exported_at: new Date().toISOString(), session: { session_id: s.id, name: s.name, status: s.status, started_at: new Date(s.started).toISOString(), stopped_at: s.stopped ? new Date(s.stopped).toISOString() : null }, tabs: TABS, navigations: s.id === 's1' ? NAVS : [], requests: reqs, events: S.events.map(strip) }, null, 2);
+    type = 'application/json';
+  } else {
+    const cell = (v) => { let t = v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v); if (/^[=+\-@]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
+    const cols = ['timestamp_iso', 'tab', 'source', 'hit_type', 'rsid', 'page_name', 'page_url', 'link_name', 'events', 'evars', 'props', 'products', 'parse_status', 'capture_id'];
+    const rows = S.events.map((e) => [new Date(e.ts).toISOString(), TABS[e.tab].badge, e.source, e.hit_type, (e.rsid ?? []).join(','), e.page_name, e.page_url, e.link_name, e.events.map((x) => x.name).join(','), e.evars, e.props, e.products.map((p) => p.raw), e.parse_status, e.capture_id].map(cell).join(','));
+    text = '﻿' + [cols.join(','), ...rows].join('\r\n');
+    type = 'text/csv';
+  }
+  const a = h('a', { href: URL.createObjectURL(new Blob([text], { type })), download: `aajr-session-${s.name.replace(/\W+/g, '-').toLowerCase()}.${fmt}` });
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// Settings
+function renderSettings() {
+  const st = S.settings;
+  const err = h('span', { class: 'error', role: 'alert' });
+  const custom = h('textarea', { id: 'custom', 'aria-describedby': 'custom-help' }, st.custom);
+  const masking = h('textarea', { id: 'masking', 'aria-describedby': 'masking-help', placeholder: 'eVar12\nemail\nxdm.identityMap.*' }, st.masking);
+  const raw = h('input', { type: 'checkbox', checked: st.retainRaw });
+  $('#views').replaceChildren(h('form', { class: 'view', onsubmit: (e) => {
+    e.preventDefault();
+    const bad = custom.value.split('\n').map((l, i) => [l.trim(), i + 1]).filter(([l]) => l).find(([l]) => { try { new URLPattern(l); return false; } catch { return true; } });
+    if (bad) { err.textContent = `Line ${bad[1]} is not a valid URL pattern, e.g. https://*.example.com/collect*`; custom.focus(); return; }
+    err.textContent = '';
+    Object.assign(st, { custom: custom.value, masking: masking.value, retainRaw: raw.checked });
+    toast('Settings saved. They apply to new hits.');
+  } },
+    h('h3', {}, 'Detection'),
+    h('ul', {}, h('li', {}, h('code', {}, '/b/ss/'), ' AppMeasurement'), h('li', {}, h('code', {}, '/ee/…/v1/interact|collect'), ' Web SDK')),
+    h('div', { class: 'field' }, h('label', { for: 'custom' }, 'Custom tracking URL patterns'), custom, h('small', { id: 'custom-help' }, 'One URL pattern per line. Matching requests are kept even if they cannot be decoded.'), err),
+    h('h3', {}, 'Privacy'),
+    h('label', { class: 'field' }, h('span', {}, raw, ' Keep raw requests (URL, headers, body)')),
+    h('div', { class: 'field' }, h('label', { for: 'masking' }, 'Mask these variables'), masking, h('small', { id: 'masking-help' }, 'One name or path per line. Values are replaced by [masked] before saving and cannot be restored. Empty by default.')),
+    h('h3', {}, 'Permissions'),
+    h('p', {}, S.permission === 'granted' ? 'All-sites access: granted.' : 'All-sites access: not granted yet. Chrome asks when you start a recording.'),
+    h('h3', {}, 'Filter profiles'),
+    h('ul', {}, PROFILES.map((p) => h('li', {}, h('strong', {}, p.name), h('br'), h('span', { class: 'muted mono' }, `include any: ${p.include.map(ruleText).join('; ') || 'all'}${p.exclude.length ? ` · exclude: ${p.exclude.map(ruleText).join('; ')}` : ''}`)))),
+    h('div', { class: 'controls' }, h('button', { type: 'submit', class: 'primary' }, 'Save settings'))));
+}
+
+// ---------- inspector ----------
+function openInspector(id, list) { S.lastFocus = id; S.selected = id; S.inspList = list ?? S.events.map((e) => e.event_id); renderAll(); $('#insp-back')?.focus(); }
+function closeInspector() {
+  const id = S.lastFocus; S.selected = null; renderAll();
+  $(`#views .row[data-id="${id}"]`)?.focus();
+}
+function step(dir) {
+  const i = S.inspList.indexOf(S.selected) + dir;
+  if (i < 0 || i >= S.inspList.length) return;
+  S.selected = S.lastFocus = S.inspList[i];
+  renderInspector();
+}
+function valueNode(v) {
+  if (v && typeof v === 'object') {
+    return h('span', {}, h('code', {}, v.raw), ' → ',
+      v.resolved != null ? [longText(v.resolved), h('span', { class: 'ref' }, ` (from ${v.ref})`)] : h('span', { class: 'unresolved' }, `not in hit (${v.ref} set server-side or missing)`));
+  }
+  if (v === '') return h('span', { class: 'muted' }, '(empty)');
+  return longText(v);
+}
+function longText(v) {
+  v = String(v);
+  if (v.length <= 200) return h('span', {}, v);
+  const span = h('span', {}, v.slice(0, 200) + '… ');
+  span.append(h('button', { type: 'button', class: 'link', onclick: (e) => { span.textContent = v; e.stopPropagation(); } }, 'Show all'));
+  return span;
+}
+const sortKeys = (o) => Object.keys(o).sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
+function kv(obj, emptyText) {
+  const keys = sortKeys(obj);
+  if (!keys.length) return h('p', { class: 'muted' }, emptyText);
+  return h('dl', { class: 'kv' }, keys.map((k) => [h('dt', {}, k), h('dd', {}, Array.isArray(obj[k]) ? obj[k].join(' | ') : valueNode(obj[k]))]));
+}
+function renderInspector() {
+  const e = S.events.find((x) => x.event_id === S.selected);
+  const i = S.inspList.indexOf(e.event_id);
+  const tabs = ['overview', 'events', 'variables', 'products', ...(e.xdm ? ['xdm'] : []), 'raw'];
+  if (!tabs.includes(S.inspTab)) S.inspTab = 'overview';
+  const tabLabel = { overview: 'Overview', events: `Events (${e.events.length})`, variables: 'Variables', products: `Products (${e.products.length})`, xdm: 'XDM', raw: 'Raw' };
+  const sub = h('div', { class: 'subtabs', role: 'tablist', 'aria-label': 'Hit details', onkeydown: (ev) => {
+    if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return;
+    const j = (tabs.indexOf(S.inspTab) + (ev.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
+    S.inspTab = tabs[j]; renderInspector(); $(`#st-${tabs[j]}`).focus();
+  } }, tabs.map((t) => h('button', { type: 'button', role: 'tab', id: 'st-' + t, 'aria-selected': String(t === S.inspTab), 'aria-controls': 'insp-body', tabindex: t === S.inspTab ? '0' : '-1', onclick: () => { S.inspTab = t; renderInspector(); $(`#st-${t}`).focus(); } }, tabLabel[t])));
+  const notice = e.parse_status !== 'complete'
+    ? h('div', { class: 'notice ' + e.parse_status, role: 'note' }, h('strong', {}, e.parse_status === 'partial' ? '⚠ Partially decoded' : '✗ Not decoded'), h('ul', {}, e.parse_messages.map((m) => h('li', {}, m))))
+    : null;
+  const src = { appmeasurement: 'AppMeasurement', websdk: 'Web SDK', unknown: 'Unknown' }[e.source];
+  const tab = TABS[e.tab];
+  const body = h('div', { class: 'insp-body', id: 'insp-body', role: 'tabpanel', 'aria-labelledby': 'st-' + S.inspTab, tabindex: '0' }, notice);
+  const copy = (txt, what) => h('button', { type: 'button', onclick: () => navigator.clipboard?.writeText(txt).then(() => toast(`${what} copied.`), () => toast('Copy failed: clipboard not available.')) }, `Copy ${what}`);
+  const na = (v) => v ?? h('span', { class: 'muted' }, 'not in hit');
+  switch (S.inspTab) {
+    case 'overview':
+      body.append(h('dl', { class: 'kv' }, [
+        ['Time', `${fmtTime(e.ts)} (${new Date(e.ts).toISOString()})`], ['Source', src], ['Method', `${e.request_method} · ${e.req.type}`],
+        ['Hit type', e.event_type ? `${e.hit_type} (${e.event_type})` : e.hit_type],
+        e.source === 'websdk' ? ['Datastream', na(e.datastream_id)] : ['RSID', e.rsid ? e.rsid.join(', ') : na(null)],
+        ['Server', e.tracking_server], ['Page name', na(e.page_name)], ['Page URL', e.page_url ? longText(e.page_url) : na(null)],
+        ['Referrer', e.referrer ? longText(e.referrer) : na(null)], e.link_name ? ['Link name', e.link_name] : null,
+        ['Tab', `${tab.badge} · ${tab.title}`], ['Capture', e.capture_method], ['Parse status', e.parse_status],
+      ].filter(Boolean).map(([k, v]) => [h('dt', {}, k), h('dd', {}, v)])), h('p', {}, copy(JSON.stringify((({ req, ...x }) => x)(e), null, 2), 'JSON')));
+      break;
+    case 'events':
+      body.append(e.events.length ? h('dl', { class: 'kv' }, e.events.map((x) => [h('dt', {}, x.name), h('dd', {}, x.value != null ? `value ${x.value}` : '', x.serial != null ? ` serial ${x.serial}` : '', x.value == null && x.serial == null ? h('span', { class: 'muted' }, 'counter') : '')])) : h('p', { class: 'muted' }, 'No events in this hit.'));
+      break;
+    case 'variables':
+      body.append(h('h3', {}, `eVars (${Object.keys(e.evars).length})`), kv(e.evars, 'No eVars.'),
+        h('h3', {}, `Props (${Object.keys(e.props).length})`), kv(e.props, 'No props.'),
+        h('h3', {}, 'List variables'), kv(e.list_vars, 'None.'),
+        h('h3', {}, 'Context data'), kv(e.context_data, e.source === 'websdk' ? 'Not used by the Web SDK; see XDM.' : 'None.'),
+        h('h3', {}, 'Visitor IDs'), kv(e.visitor_ids, 'None in this hit.'),
+        h('h3', {}, 'Other parameters'), kv(e.other_params, 'None.'));
+      break;
+    case 'products':
+      body.append(e.products.length ? h('div', {}, e.products.map((p, j) => h('div', { class: 'card' },
+        h('strong', {}, `${j + 1}. ${p.product ?? '(no product id)'}`),
+        h('dl', { class: 'kv' }, [['Category', na(p.category)], ['Quantity', na(p.quantity)], ['Price', na(p.price)]].map(([k, v]) => [h('dt', {}, k), h('dd', {}, v)])),
+        h('h3', {}, 'Product events'), kv(p.events, 'None.'), h('h3', {}, 'Merchandising eVars'), kv(p.evars, 'None.'),
+        h('h3', {}, 'Raw'), h('pre', { class: 'wrap' }, p.raw)))) : h('p', { class: 'muted' }, e.source === 'websdk' && e.xdm?.productListItems ? 'No AA products string. XDM productListItems are in the XDM tab (not merged).' : 'No products in this hit.'));
+      break;
+    case 'xdm':
+      body.append(h('p', { class: 'muted' }, 'Original XDM, not merged into Analytics variables (mapping happens in the datastream).'), h('pre', {}, JSON.stringify(e.xdm, null, 2)));
+      break;
+    case 'raw': {
+      const r = e.req, u = new URL(r.url);
+      body.append(h('dl', { class: 'kv' }, [['Method', r.method], ['Type', r.type], ['Capture', r.capture_method], ['Result', String(r.result.status_code)], ['Parse status', e.parse_status], ['Capture ID', r.capture_id]].map(([k, v]) => [h('dt', {}, k), h('dd', {}, v)])),
+        h('h3', {}, 'URL'), h('pre', { class: 'wrap' }, r.url), h('p', {}, copy(r.url, 'URL')),
+        u.search ? [h('h3', {}, 'Query parameters (in order)'), h('pre', {}, [...u.searchParams].map(([k, v]) => `${k}=${v}`).join('\n'))] : null,
+        h('h3', {}, 'Headers available to the extension'), h('dl', { class: 'kv' }, r.headers.map(([k, v]) => [h('dt', {}, k), h('dd', {}, v)])),
+        h('p', { class: 'muted' }, 'Cookie and authorization headers are never captured.'),
+        h('h3', {}, 'Body'),
+        !r.body ? h('p', { class: 'muted' }, `No body (${r.method}).`)
+          : r.body.kind === 'unavailable' ? h('p', { class: 'unresolved' }, 'Body not exposed by the browser for this request.')
+          : [h('p', { class: 'muted' }, r.body.content_type), h('pre', {}, (() => { try { return JSON.stringify(JSON.parse(r.body.data), null, 2); } catch { return r.body.data; } })())]);
+      break;
+    }
+  }
+  $('#inspector').replaceChildren(
+    h('div', { class: 'insp-head' },
+      h('div', { class: 'insp-nav' },
+        h('button', { type: 'button', id: 'insp-back', onclick: closeInspector }, '← Back'),
+        h('button', { type: 'button', 'aria-label': 'Previous hit', disabled: i <= 0, onclick: () => step(-1) }, '↑ Prev'),
+        h('button', { type: 'button', 'aria-label': 'Next hit', disabled: i >= S.inspList.length - 1, onclick: () => step(1) }, '↓ Next'),
+        h('h2', { id: 'insp-title' }, `Hit ${i + 1} of ${S.inspList.length}`)),
+      h('span', {}, `${fmtTime(e.ts)} · ${tab.badge} · ${e.request_method} · ${src}`),
+      h('strong', {}, e.hit_type.startsWith('link') && e.link_name ? `link: ${e.link_name}` : e.page_name ?? '(no page name)')),
+    sub, body);
+}
+
+// ---------- misc ----------
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2600); }
+function simulateHit() {
+  if (S.status !== 'recording') { toast(S.status === 'paused' ? 'Paused: new requests are not recorded.' : 'Not recording: requests are ignored.'); return; }
+  const last = S.events.at(-1)?.ts ?? Date.now();
+  const ts = last + 4000 + Math.round(Math.random() * 9000);
+  const req = S.events.length % 2
+    ? amReq(ts, 't2', (p) => { p.set('pe', 'lnk_o'); p.set('pev2', 'Job: Merken'); p.set('events', 'event8'); })
+    : sdkReq(ts, 't1', crypto.randomUUID(), (x, a) => { x.eventType = 'web.webinteraction.linkClicks'; Object.assign(a, { linkName: 'Reiseverlauf öffnen', events: 'event41' }); delete a.products; });
+  S.events.push(...ingest(req));
+  $('#announce').textContent = `New hit. ${S.events.length} hits.`;
+  renderHeader();
+  if (!S.selected && !S.settingsOpen) ({ live: renderLiveList, journey: renderJourney, funnel: renderFunnel, sessions: renderSessions })[S.view]();
+  if (S.view === 'live' && !S.selected && !$('#live-list')) renderLive();
+}
+
+$('#tabs').addEventListener('click', (e) => { const t = e.target.closest('[role="tab"]'); if (t) setView(t.dataset.view); });
+$('#tabs').addEventListener('keydown', (e) => {
+  if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+  const tabs = [...$('#tabs').querySelectorAll('[role="tab"]')];
+  const i = tabs.indexOf(document.activeElement);
+  if (i < 0) return;
+  const n = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+  setView(n.dataset.view); n.focus();
+});
+$('#gear').addEventListener('click', () => { S.settingsOpen = !S.settingsOpen; S.selected = null; renderAll(); });
+document.addEventListener('keydown', (e) => {
+  if (S.selected == null || $('#confirm').open) return;
+  if (e.key === 'Escape') { e.preventDefault(); closeInspector(); }
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
+  if (e.key === 'j') step(1);
+  if (e.key === 'k') step(-1);
+});
+$('#scenario').addEventListener('change', (e) => applyScenario(e.target.value));
+$('#width').addEventListener('change', (e) => $('#panel').style.setProperty('--w', e.target.value + 'px'));
+$('#simulate').addEventListener('click', simulateHit);
+applyScenario('recording');
+</script>
+</body>
+</html>

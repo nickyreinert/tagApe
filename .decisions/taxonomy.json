@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "categories": [
+    {
+      "name": "Product",
+      "subcategories": [
+        { "name": "Scope", "keywords": ["feature", "scope", "requirement", "user", "funktion", "anforderung", "nutzer"] },
+        { "name": "Business Rules", "keywords": ["billing", "pricing", "payment", "order", "fairness", "abrechnung", "preis", "zahlung", "bestellung"] }
+      ]
+    },
+    {
+      "name": "Architecture",
+      "subcategories": [
+        { "name": "Stack", "keywords": ["stack", "framework", "language", "library", "dependency", "profile", "sprache", "bibliothek", "abhängigkeit"] },
+        { "name": "Structure", "keywords": ["module", "architecture", "layer", "component", "interface", "api", "format", "architektur", "schicht", "komponente", "schnittstelle"] }
+      ]
+    },
+    {
+      "name": "Data",
+      "subcategories": [
+        { "name": "Storage", "keywords": ["database", "migration", "schema", "table", "sql", "sqlite", "cache", "datenbank", "tabelle", "speicher"] },
+        { "name": "Privacy", "keywords": ["privacy", "personal", "gdpr", "consent", "retention", "datenschutz", "dsgvo", "einwilligung", "löschung"] }
+      ]
+    },
+    {
+      "name": "Delivery",
+      "subcategories": [
+        { "name": "CI", "keywords": ["ci", "workflow", "pipeline", "test", "lint", "release", "github", "actions"] },
+        { "name": "Hosting", "keywords": ["deploy", "hosting", "server", "docker", "container", "domain", "staging", "production", "umgebung"] }
+      ]
+    },
+    {
+      "name": "Security",
+      "subcategories": [
+        { "name": "Secrets", "keywords": ["secret", "token", "key", "password", "credential", "env", "geheimnis", "passwort", "schlüssel"] },
+        { "name": "Access", "keywords": ["auth", "login", "permission", "role", "csrf", "injection", "xss", "berechtigung", "anmeldung", "rolle"] }
+      ]
+    },
+    {
+      "name": "Operations",
+      "subcategories": [
+        { "name": "Monitoring", "keywords": ["log", "logging", "monitoring", "alert", "metrics", "backup", "restore", "überwachung", "sicherung"] }
+      ]
+    },
+    {
+      "name": "Governance",
+      "subcategories": [
+        { "name": "Process", "keywords": ["adr", "decision", "review", "branch", "commit", "convention", "agent", "hook", "entscheidung", "prozess"] }
+      ]
+    }
+  ]
+}

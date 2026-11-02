@@ -1,0 +1,24 @@
+# Tasks
+
+## How to work with this file
+
+1. **Track:** `just task start <id>` moves an item to Active as "in progress". Log each step with `just task log <id> "what changed" --resume "next step"`, so a fresh session can resume from the Resume point.
+2. **Finish:** when the item is implemented and `just check` is green, run `just task done <id>`; it moves to the Done history (TASKS.archive.md). Then take the next backlog item unless the user asked you to stop.
+3. **Model and effort:** every item names a suggested model tier and reasoning effort: the line `  model: sonnet · effort: medium` under a backlog item, the "Model / effort" field on an active one. Add it to every new item (`just task new "title" --model sonnet --effort medium`). Use the cheapest tier that fits; a small sub-agent can work through the low-effort items.
+4. **Specs and plans:** `docs/spec/` describes the current system and is kept. `docs/plan/` holds temporary plans; delete a plan file and its link here when its work is done. Code comments and `.decisions/` link only to `docs/spec/`.
+
+## Active
+### T-009 Settings: paste a Workspace curl, extract bearer token, load dimension/metric names from Adobe API and show them as optional column. BLOCKED: conflicts with spec non-goals (no Adobe credentials, no Reporting API, no network calls) - needs a superseding decision first — in progress (80 %)
+- **Model / effort:** opus · effort: high
+- **Resume point:** user tests Load names, then adjust endpoint
+- **Journal:**
+  - 2026-11-02 Curl parser, dimensions/metrics fetch from inferred API base, names shown next to variables (toggle), token in storage.session
+  - 2026-11-02 Parked by user: endpoint probing in place, untested against Adobe
+
+### T-021 Publish TagApe source to GitHub — in progress (0 %)
+- **Model / effort:** sonnet · effort: low
+- **Resume point:** Started; nothing logged yet.
+
+## Backlog
+
+## Done → TASKS.archive.md

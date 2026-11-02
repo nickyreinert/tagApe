@@ -1,0 +1,90 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" UserPromptSubmit --agent codex --module comfort",
+            "timeout": 10,
+            "statusMessage": "YAW comfort: prompt"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" UserPromptSubmit --agent codex --module decisions",
+            "timeout": 10,
+            "statusMessage": "YAW decisions: recall"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" Stop --agent codex --module comfort",
+            "timeout": 10,
+            "statusMessage": "YAW comfort: stop"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" Stop --agent codex --module sessions",
+            "timeout": 10,
+            "statusMessage": "YAW sessions: touch"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" Stop --agent codex --module tasks",
+            "timeout": 10,
+            "statusMessage": "YAW tasks: stop-resume-point"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" SessionStart --agent codex --module decisions",
+            "timeout": 10,
+            "statusMessage": "YAW decisions: session-start-critical"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" SessionStart --agent codex --module sessions",
+            "timeout": 10,
+            "statusMessage": "YAW sessions: register"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" SessionStart --agent codex --module tasks",
+            "timeout": 10,
+            "statusMessage": "YAW tasks: session-start-task"
+          }
+        ]
+      }
+    ]
+  }
+}

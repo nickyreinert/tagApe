@@ -1,0 +1,145 @@
+{
+  "statusLine": {
+    "type": "command",
+    "command": "r=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}\"; k=\"${YAW_KIT:-$HOME/.yaw/kit}\"; [ ! -f \"$r/.yaw/lib/bin/yaw\" ] || k=\"$r/.yaw/lib\"; [ ! -f \"$k/bin/yaw\" ] || node --no-warnings \"$k/bin/yaw\" statusline 2>/dev/null; exit 0"
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" UserPromptSubmit --agent claude --module comfort",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" UserPromptSubmit --agent claude --module decisions",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" Stop --agent claude --module comfort",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" Stop --agent claude --module sessions",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" Stop --agent claude --module tasks",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt|idle_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" Notification --agent claude --module comfort",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" StopFailure --agent claude --module comfort",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" PostToolUse --agent claude --module comfort",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" PostToolUseFailure --agent claude --module comfort",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" SessionStart --agent claude --module decisions",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" SessionStart --agent claude --module sessions",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" SessionStart --agent claude --module tasks",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/.yaw/bin/yaw-hook\"; [ ! -f \"$f\" ] || sh \"$f\" SessionEnd --agent claude --module sessions",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "outputStyle": "YAW"
+}

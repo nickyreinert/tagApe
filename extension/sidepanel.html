@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TagApe</title>
+    <link rel="stylesheet" href="sidepanel.css">
+    <script src="sidepanel.js" type="module"></script>
+  </head>
+  <body>
+    <div class="frame" id="panel">
+      <header class="hdr" id="hdr"></header>
+      <nav class="tabs" role="tablist" aria-label="Views" id="tabs">
+        <button type="button" role="tab" id="tab-live" aria-controls="views" data-view="live">Live</button>
+        <button type="button" role="tab" id="tab-sessions" aria-controls="views" data-view="sessions">Sessions</button>
+        <button type="button" class="gear" id="gear" aria-label="Settings" aria-pressed="false">⚙</button>
+      </nav>
+      <main id="views" role="tabpanel"></main>
+      <div class="popover" id="popover" role="dialog" aria-label="Variable actions" hidden></div>
+      <div class="shot-preview" id="shot-preview" hidden></div>
+      <div class="toast" id="toast" role="status" hidden></div>
+      <div class="sr-only" id="announce" aria-live="polite"></div>
+    </div>
+
+    <dialog id="confirm">
+      <p id="confirm-text"></p>
+      <div class="dialog-actions">
+        <button type="button" id="confirm-cancel">Cancel</button>
+        <button type="button" id="confirm-ok" class="primary">Delete</button>
+      </div>
+    </dialog>
+
+    <datalist id="rule-fields">
+      <option value="event"></option>
+      <option value="rsid"></option>
+      <option value="page_name"></option>
+      <option value="page_url"></option>
+      <option value="link_name"></option>
+      <option value="hit_type"></option>
+      <option value="source"></option>
+      <option value="parse_status"></option>
+      <option value="tab"></option>
+      <option value="evar:1"></option>
+      <option value="prop:1"></option>
+    </datalist>
+  </body>
+</html>
