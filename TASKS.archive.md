@@ -19,3 +19,4 @@
 - T-018 Add Google Analytics capture and document the extension — done 2026-11-02
 - T-019 Name the analytics extension and update public branding — done 2026-11-02
 - T-020 Rename HitTrail to TagApe — done 2026-11-02
+- T-021 Publish TagApe source to GitHub — done 2026-11-02

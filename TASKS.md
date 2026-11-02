@@ -15,10 +15,6 @@
   - 2026-11-02 Curl parser, dimensions/metrics fetch from inferred API base, names shown next to variables (toggle), token in storage.session
   - 2026-11-02 Parked by user: endpoint probing in place, untested against Adobe
 
-### T-021 Publish TagApe source to GitHub — in progress (0 %)
-- **Model / effort:** sonnet · effort: low
-- **Resume point:** Started; nothing logged yet.
-
 ## Backlog
 
 ## Done → TASKS.archive.md
